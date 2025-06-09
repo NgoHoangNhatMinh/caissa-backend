@@ -14,6 +14,11 @@ public class Move {
     public boolean isEnPassant;
     public int capturedSquare = -1;
 
+    // Default constructor for serialization
+    public Move() {
+
+    }
+
     public Move(String move, boolean isWhite) {
         piecesMap.put("WP", 0);
         piecesMap.put("WN", 1);

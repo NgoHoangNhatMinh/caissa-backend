@@ -22,13 +22,21 @@ public class AwesomePossomController {
         return board;
     }
 
+    @PostMapping("/reset")
+    public Board resetBoard() {
+        board.init();
+        return board;
+    }
+
     @PostMapping("/move")
     public Board playerMove(@RequestBody Move move) {
         board.makeMove(move);
-        Move engineMove = Engine.generateBestMove(board, 3);
-        if (engineMove != null) {
-            board.makeMove(engineMove);
-        }
+        return board;
+    }
+
+    @GetMapping("/engine_move")
+    public Board engineMove() {
+        board.makeMove(Engine.generateBestMove(board, 0));
         return board;
     }
 
