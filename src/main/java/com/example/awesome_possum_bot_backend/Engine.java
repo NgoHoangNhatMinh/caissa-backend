@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Engine {
     public static void main(String... args) {
         Board board = new Board();
+        // board.init("rn1bk1nr/pppp1ppp/8/2b1p2Q/2B1P2q/5N2/PPPP1PPP/RN1BK2R b KQkq - 0 1");
         board.init();
         board.isWhiteBot = true;
         board.isBlackBot = true;

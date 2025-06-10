@@ -15,7 +15,6 @@ public class Board {
     private int halfMovesSinceReset = 0;
     private int fullMoves = 1;
     private Map<Long, Integer> zobristMap = new HashMap<>();
-    private boolean isGameOver = false;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -85,22 +84,18 @@ public class Board {
                     System.out.println((isWhite ? "White" : "Black") + " is checkmated");
                 else
                     System.out.println("The game is a draw by stalemate");
-                isGameOver = true;
                 break;
             }
             if (isFiftyMove()) {
                 System.out.println("The game is a draw by 50-move rule");
-                isGameOver = true;
                 break;
             }
             if (isThreefoldRepetition()) {
                 System.out.println("The game is a draw by threefold repetition");
-                isGameOver = true;
                 break;
             }
             if (isInsufficientMaterial()) {
                 System.out.println("The game is a draw by insufficient material");
-                isGameOver = true;
                 break;
             }
 
@@ -150,7 +145,6 @@ public class Board {
 
         newBoard.isWhiteBot = isWhiteBot;
         newBoard.isBlackBot = isBlackBot;
-        newBoard.isGameOver = isGameOver;
         return newBoard;
     }
 
@@ -328,7 +322,7 @@ public class Board {
     }
 
     public boolean isGameOver() {
-        return isGameOver;
+        return isCheckmate() || isStalemate() || isThreefoldRepetition() || isFiftyMove() || isInsufficientMaterial();
     }
 
     public long zobristHash() {

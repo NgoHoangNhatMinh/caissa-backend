@@ -89,7 +89,7 @@ public class Evaluate {
         public static int evaluate(Board board) {
                 int who2Move = board.isWhiteToMove() ? 1 : -1;
                 if (board.isCheckmate())
-                        return -who2Move * CHECKMATE_SCORE;
+                        return -CHECKMATE_SCORE;
                 if (board.isStalemate())
                         return DRAW_SCORE;
                 if (board.isThreefoldRepetition())
@@ -120,7 +120,7 @@ public class Evaluate {
                         while (blackPiece != 0) {
                                 int sq = Long.numberOfTrailingZeros(blackPiece);
                                 int mirroredSq = sq ^ 56;
-                                positionalScore += -PIECE_SQUARES_TABLE[i][mirroredSq];
+                                positionalScore -= PIECE_SQUARES_TABLE[i][mirroredSq];
                                 blackPiece &= blackPiece - 1;
                         }
 
