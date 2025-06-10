@@ -45,8 +45,9 @@ public class AwesomePossomController {
     }
 
     @PostMapping("/best")
-    public Move getBesMove(@RequestBody Map<String, String> body) {
-        String fen = body.get("fen");
-        return Engine.generateBestMove(fen, 3);
+    public Move getBesMove(@RequestBody Map<String, Object> body) {
+        String fen = (String) body.get("fen");
+        Integer depth = body.get("depth") != null ? ((Number) body.get("depth")).intValue() : 3; 
+        return Engine.generateBestMove(fen, depth);
     }
 }
