@@ -32,6 +32,7 @@ clean:
 
 test:
 	@echo "Running tests..."
+	@echo "Verify results against: https://www.chessprogramming.org/Perft_Results"
 	@mkdir -p $(OUT_DIR)
 	@javac -d $(OUT_DIR) $(SOURCE)
 	@java -cp $(OUT_DIR) $(PERFT_CLASS) $(DEPTH)

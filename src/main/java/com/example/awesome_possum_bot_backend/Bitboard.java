@@ -309,15 +309,15 @@ public class Bitboard {
             if (isWhite) {
                 if (to / 8 == 0)
                     for (int i = 1; i < 5; i++)
-                        possibleMoves.add(new Move(to + 8, to, currPiece, i));
+                        possibleMoves.add(new Move(to + 8, to, currPiece, -1, false, i));
                 else
-                    possibleMoves.add(new Move(to + 8, to, currPiece));
+                    possibleMoves.add(new Move(to + 8, to, currPiece, -1, false, -1));
             } else {
                 if (to / 8 == 7)
                     for (int i = 7; i < 11; i++)
-                        possibleMoves.add(new Move(to - 8, to, currPiece, i));
+                        possibleMoves.add(new Move(to - 8, to, currPiece, -1, false, i));
                 else
-                    possibleMoves.add(new Move(to - 8, to, currPiece));
+                    possibleMoves.add(new Move(to - 8, to, currPiece, -1, false, -1));
             }
             singlePushs &= singlePushs - 1;
         }
@@ -325,9 +325,9 @@ public class Bitboard {
         while (doublePushs != 0) {
             int to = Long.numberOfTrailingZeros(doublePushs);
             if (isWhite) {
-                possibleMoves.add(new Move(to + 16, to, 0));
+                possibleMoves.add(new Move(to + 16, to, 0, -1, false, -1));
             } else {
-                possibleMoves.add(new Move(to - 16, to, 6));
+                possibleMoves.add(new Move(to - 16, to, 6, -1, false, -1));
             }
             doublePushs &= doublePushs - 1;
         }

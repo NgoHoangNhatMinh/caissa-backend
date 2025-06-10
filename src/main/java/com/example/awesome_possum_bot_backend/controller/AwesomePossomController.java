@@ -1,5 +1,8 @@
 package com.example.awesome_possum_bot_backend.controller;
 
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,6 +13,7 @@ import com.example.awesome_possum_bot_backend.Engine;
 import com.example.awesome_possum_bot_backend.Move;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class AwesomePossomController {
     private Board board = new Board();
 
@@ -40,8 +44,9 @@ public class AwesomePossomController {
         return board;
     }
 
-    @GetMapping("/best")
-    public Move getBesMove() {
-        return Engine.generateBestMove(board, 3);
+    @PostMapping("/best")
+    public Move getBesMove(@RequestBody Map<String, String> body) {
+        String fen = body.get("fen");
+        return Engine.generateBestMove(fen, 3);
     }
 }

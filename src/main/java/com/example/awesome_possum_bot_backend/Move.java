@@ -13,6 +13,8 @@ public class Move {
     public boolean isLongCastling;
     public boolean isEnPassant;
     public int capturedSquare = -1;
+    public String fromString;
+    public String toString;
 
     // Default constructor for serialization
     public Move() {
@@ -132,27 +134,8 @@ public class Move {
         }
 
         this.isWhite = isWhite;
-
-    }
-
-    public Move(int from, int to, int piece) {
-        this.from = from;
-        this.to = to;
-        this.piece = piece;
-    }
-
-    public Move(int from, int to, int piece, boolean isEnPassant) {
-        this.from = from;
-        this.to = to;
-        this.piece = piece;
-        this.isEnPassant = isEnPassant;
-    }
-
-    public Move(int from, int to, int piece, int promotionPiece) {
-        this.from = from;
-        this.to = to;
-        this.piece = piece;
-        this.promotionPiece = promotionPiece;
+        this.fromString = toSquare(from);
+        this.toString = toSquare(to);
     }
 
     public Move(int from, int to, int piece, int capturedSquare, boolean isEP, int promotionPiece) {
@@ -162,6 +145,8 @@ public class Move {
         this.capturedSquare = capturedSquare;
         this.isEnPassant = isEP;
         this.promotionPiece = promotionPiece;
+        this.fromString = toSquare(from);
+        this.toString = toSquare(to);
     }
 
     public static int toNum(String s) {
