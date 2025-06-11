@@ -9,9 +9,9 @@ public class Move {
     public int piece;
     public int promotionPiece = -1;
     public boolean isWhite;
-    public boolean isShortCastling;
-    public boolean isLongCastling;
-    public boolean isEnPassant;
+    public boolean isShortCastling = false;
+    public boolean isLongCastling = false;
+    public boolean isEnPassant = false;
     public int capturedSquare = -1;
     public String fromString;
     public String toString;
@@ -40,8 +40,14 @@ public class Move {
 
         if (move.equals("0-0")) {
             isShortCastling = true;
+            from = isWhite ? 60 : 4;
+            to = isWhite ? 62 : 6;
+            piece = isWhite ? 5 : 11;
         } else if (move.equals("0-0-0")) {
             isLongCastling = true;
+            from = isWhite ? 60 : 4;
+            to = isWhite ? 58 : 2;
+            piece = isWhite ? 5 : 11;
         } else if (move.length() == 4 || move.length() == 6) {
             piece = isWhite ? piecesMap.get("WP") : piecesMap.get("BP");
             from = toNum(move.substring(0, 2));
