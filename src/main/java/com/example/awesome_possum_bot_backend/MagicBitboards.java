@@ -1,7 +1,14 @@
 package com.example.awesome_possum_bot_backend;
 
 import java.util.Random;
-import java.util.Arrays;
+import java.util.Map;
+import java.util.HashMap;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.FileReader;
+import java.io.BufferedReader;
 
 public class MagicBitboards {
     public static long[] bishopRelevantOccupancy = new long[64];
@@ -20,15 +27,46 @@ public class MagicBitboards {
             rookBlockers[i] = generateBlockerPermutations(rookRelevantOccupancy[i]);
             bishopBlockers[i] = generateBlockerPermutations(bishopRelevantOccupancy[i]);
 
-            for (int j = 0; j < rookBlockers[i].length; j++) {
-                rookAttacks[i][j] = computeRookAttacks(i, rookBlockers[i][j]);
-            }
-            rookMagic[i] = findRookMagic(i);
-
             for (int j = 0; j < bishopBlockers[i].length; j++) {
                 bishopAttacks[i][j] = computeBishopAttacks(i, bishopBlockers[i][j]);
             }
-            bishopMagic[i] = findBishopMagic(i);
+
+            for (int j = 0; j < rookBlockers[i].length; j++) {
+                rookAttacks[i][j] = computeRookAttacks(i, rookBlockers[i][j]);
+            }
+
+        }
+
+        File rookFile = new File("rook_magics.txt");
+        File bishopFile = new File("bishop_magics.txt");
+
+        if (bishopFile.exists()) {
+            bishopMagic = loadMagics("bishop_magics.txt", 64);
+        } else {
+            for (int i = 0; i < 64; i++) {
+                bishopMagic[i] = findBishopMagic(i);
+            }
+            saveMagics("bishop_magics.txt", bishopMagic);
+        }
+
+        if (rookFile.exists()) {
+            rookMagic = loadMagics("rook_magics.txt", 64);
+        } else {
+            for (int i = 0; i < 64; i++) {
+                rookMagic[i] = findRookMagic(i);
+            }
+            saveMagics("rook_magics.txt", rookMagic);
+        }
+
+        for (int i = 0; i < 64; i++) {
+            for (long blocker : rookBlockers[i]) {
+                int index = (int) ((blocker * rookMagic[i]) >>> (64 - Long.bitCount(rookRelevantOccupancy[i])));
+                rookAttacks[i][index] = computeRookAttacks(i, blocker);
+            }
+            for (long blocker : bishopBlockers[i]) {
+                int index = (int) ((blocker * bishopMagic[i]) >>> (64 - Long.bitCount(bishopRelevantOccupancy[i])));
+                bishopAttacks[i][index] = computeBishopAttacks(i, blocker);
+            }
         }
     }
 
@@ -83,31 +121,32 @@ public class MagicBitboards {
 
     private static long findRookMagic(int square) {
         Random rand = new Random();
-        int numBits = Long.bitCount(rookRelevantOccupancy[square]);
+        int numBits = Long.bitCount(bishopRelevantOccupancy[square]);
+        int shift = 64 - numBits;
         long[] blockers = rookBlockers[square];
-        long[] usedAttacks = new long[1 << numBits];
+        Map<Integer, Long> seen = new HashMap<>();
 
-        // Keep generating new magic number until we find a good one
         while (true) {
             long magic = randomMagic(rand);
-            Arrays.fill(usedAttacks, 0);
+            if (!isMagicCandidate(magic))
+                continue;
+            seen.clear();
             boolean fail = false;
-            boolean[] used = new boolean[1 << numBits];
 
-            // Loop through all blockers to check index
-            for (int i = 0; i < blockers.length; i++) {
-                int index = (int) ((blockers[i] * magic) >>> (64 - numBits));
-                if (!used[index]) {
-                    usedAttacks[index] = rookAttacks[square][i];
-                    used[index] = true;
-                } else if (usedAttacks[index] != rookAttacks[square][i]) {
+            for (long blocker : blockers) {
+                int index = (int) ((blocker * magic) >>> shift);
+                long attack = computeRookAttacks(square, blocker);
+                if (seen.containsKey(index) && seen.get(index) != attack) {
                     fail = true;
                     break;
                 }
+                seen.put(index, attack);
             }
 
-            if (!fail)
+            if (!fail) {
+                System.out.println("Found rook magic for square " + square + ": " + magic);
                 return magic;
+            }
         }
     }
 
@@ -159,29 +198,31 @@ public class MagicBitboards {
     private static long findBishopMagic(int square) {
         Random rand = new Random();
         int numBits = Long.bitCount(bishopRelevantOccupancy[square]);
+        int shift = 64 - numBits;
         long[] blockers = bishopBlockers[square];
-        long[] usedAttacks = new long[1 << numBits];
+        Map<Integer, Long> seen = new HashMap<>();
 
-        // Keep generating new magic number until we find a good one
         while (true) {
             long magic = randomMagic(rand);
-            Arrays.fill(usedAttacks, 0);
+            if (!isMagicCandidate(magic))
+                continue;
+            seen.clear();
             boolean fail = false;
-            boolean[] used = new boolean[1 << numBits];
-            // Loop through all blockers to check index
-            for (int i = 0; i < blockers.length; i++) {
-                int index = (int) ((blockers[i] * magic) >>> (64 - numBits));
-                if (!used[index]) {
-                    usedAttacks[index] = bishopAttacks[square][i];
-                    used[index] = true;
-                } else if (usedAttacks[index] != bishopAttacks[square][i]) {
+
+            for (long blocker : blockers) {
+                int index = (int) ((blocker * magic) >>> shift);
+                long attack = computeBishopAttacks(square, blocker);
+                if (seen.containsKey(index) && seen.get(index) != attack) {
                     fail = true;
                     break;
                 }
+                seen.put(index, attack);
             }
 
-            if (!fail)
+            if (!fail) {
+                System.out.println("Found bishop magic for square " + square + ": " + magic);
                 return magic;
+            }
         }
     }
 
@@ -215,6 +256,36 @@ public class MagicBitboards {
 
     private static long randomMagic(Random rand) {
         // Generate a random 64-bit number with a few bits set
-        return rand.nextLong() & rand.nextLong() & rand.nextLong();
+        return (rand.nextLong() & rand.nextLong() & rand.nextLong());
+    }
+
+    private static boolean isMagicCandidate(long magic) {
+        // Filter out too dense candidates
+        return Long.bitCount(magic & 0xFF00000000000000L) >= 6;
+    }
+
+    private static void saveMagics(String filename, long[] magics) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+            for (long magic : magics) {
+                writer.println(magic);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static long[] loadMagics(String filename, int size) {
+        long[] magics = new long[size];
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            for (int i = 0; i < size; i++) {
+                String line = reader.readLine();
+                if (line == null)
+                    throw new IOException("Not enough lines in magic file");
+                magics[i] = Long.parseLong(line.trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return magics;
     }
 }

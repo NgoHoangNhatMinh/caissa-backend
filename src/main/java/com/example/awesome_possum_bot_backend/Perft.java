@@ -212,10 +212,6 @@ public class Perft {
             }
 
             perft(board, depth - 1, counters);
-            // if (depth == 1) {
-            // System.out.println(move + ": " + (counters.nodes - prevCounter) + " nodes");
-            // prevCounter = counters.nodes;
-            // }
             board.undoMove();
             moveHistory.remove(moveHistory.size() - 1);
         }

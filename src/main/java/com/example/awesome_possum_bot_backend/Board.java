@@ -158,7 +158,7 @@ public class Board {
         return false;
     }
 
-    public ArrayList<Move> generateLegalMoves() {
+    public ArrayList<Move> generatePseudoLegalMoves() {
         // pseudoMoves have not accounted for king being checked after the moves are
         // made
         ArrayList<Move> pseudoMoves = new ArrayList<Move>();
@@ -171,7 +171,12 @@ public class Board {
         pseudoMoves.addAll(bitboard.generateKingMoves(isWhite));
         pseudoMoves.addAll(bitboard.generateCastlingMoves(isWhite));
 
-        ArrayList<Move> legalMoves = new ArrayList<Move>();
+        return pseudoMoves;
+    }
+
+    public ArrayList<Move> generateLegalMoves() {
+        ArrayList<Move> pseudoMoves = generatePseudoLegalMoves();
+        ArrayList<Move> legalMoves = new ArrayList<>();
 
         for (Move move : pseudoMoves) {
             Board boardCopy = this.copy();

@@ -433,11 +433,11 @@ public class Bitboard {
             long blockers = occupancy & mask;
             // Compute index for precomputed attack table:
             // https://www.chessprogramming.org/Magic_Bitboards
-            // int index = (int) ((blockers * MagicBitboards.bishopMagic[from]) >>> (64
-            // - Long.bitCount(MagicBitboards.bishopRelevantOccupancy[from])));
-            // long attacks = MagicBitboards.bishopAttacks[from][index];
+            int index = (int) ((blockers * MagicBitboards.bishopMagic[from]) >>> (64
+                    - Long.bitCount(MagicBitboards.bishopRelevantOccupancy[from])));
+            long attacks = MagicBitboards.bishopAttacks[from][index];
+            // Long attacks = MagicBitboards.computeBishopAttacks(from, blockers);
 
-            long attacks = MagicBitboards.computeBishopAttacks(from, blockers);
             long possible = attacks & ~ownOccupancy;
 
             while (possible != 0) {
@@ -463,14 +463,15 @@ public class Bitboard {
 
             long mask = MagicBitboards.rookRelevantOccupancy[from];
             long blockers = occupancy & mask;
+
             // Compute index for precomputed attack table:
             // https://www.chessprogramming.org/Magic_Bitboards
-            // int index = (int) ((blockers * MagicBitboards.rookMagic[from]) >>> (64
-            // - Long.bitCount(MagicBitboards.rookRelevantOccupancy[from])));
-            // long attacks = MagicBitboards.rookAttacks[from][index];
+            int relevantBits = Long.bitCount(MagicBitboards.rookRelevantOccupancy[from]);
+            int index = (int) ((blockers * MagicBitboards.rookMagic[from]) >>> (64
+                    - relevantBits));
+            long attacks = MagicBitboards.rookAttacks[from][index];
+            // long attacks = MagicBitboards.computeRookAttacks(from, blockers);
 
-            // compute attacks manually by scanning the board
-            long attacks = MagicBitboards.computeRookAttacks(from, blockers);
             long possible = attacks & ~ownOccupancy;
 
             while (possible != 0) {
@@ -494,16 +495,28 @@ public class Bitboard {
         while (queens != 0) {
             int from = Long.numberOfTrailingZeros(queens);
 
-            long mask = MagicBitboards.rookRelevantOccupancy[from] | MagicBitboards.bishopRelevantOccupancy[from];
-            long blockers = occupancy & mask;
+            long rookBlockers = occupancy & MagicBitboards.rookRelevantOccupancy[from];
+            long bishopBlockers = occupancy & MagicBitboards.bishopRelevantOccupancy[from];
+            long blockers = rookBlockers | bishopBlockers;
             // Compute index for precomputed attack table:
             // https://www.chessprogramming.org/Magic_Bitboards
             // int index = (int) ((blockers * MagicBitboards.queenMagic[from]) >>> (64
             // - Long.bitCount(MagicBitboards.queenRelevantOccupancy[from])));
             // long attacks = MagicBitboards.queenAttacks[from][index];
 
-            long attacks = MagicBitboards.computeRookAttacks(from, blockers)
-                    | MagicBitboards.computeBishopAttacks(from, blockers);
+            int relevantBishopBits = Long.bitCount(MagicBitboards.bishopRelevantOccupancy[from]);
+            int bishopIndex = (int) ((bishopBlockers * MagicBitboards.bishopMagic[from]) >>> (64
+                    - relevantBishopBits));
+            long bishopAttacks = MagicBitboards.bishopAttacks[from][bishopIndex];
+
+            int relevantRookBits = Long.bitCount(MagicBitboards.rookRelevantOccupancy[from]);
+            int index = (int) ((rookBlockers * MagicBitboards.rookMagic[from]) >>> (64
+                    - relevantRookBits));
+            long rookAttacks = MagicBitboards.rookAttacks[from][index];
+
+            long attacks = bishopAttacks | rookAttacks;
+            // long attacks = MagicBitboards.computeBishopAttacks(from, blockers)
+            // | MagicBitboards.computeRookAttacks(from, blockers);
             long possible = attacks & ~ownOccupancy;
 
             while (possible != 0) {
