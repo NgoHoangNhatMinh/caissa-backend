@@ -2,12 +2,12 @@ SRC_DIR := src
 OUT_DIR := out
 
 # Exclude controller and Spring Boot files
-SOURCE := $(shell find $(SRC_DIR) -name "*.java" ! -path "$(SRC_DIR)/main/java/com/example/awesome_possum_bot_backend/controller/*" ! -name "*AwesomePossumBotBackendApplication.java" ! -path "$(SRC_DIR)/test/*")
+SOURCE := $(shell find $(SRC_DIR) -name "*.java" ! -path "$(SRC_DIR)/main/java/com/example/caissa_bot_backend/controller/*" ! -name "*CaissaBotBackendApplication.java" ! -path "$(SRC_DIR)/test/*")
 
 # Fully qualified class names
-MAIN_CLASS := com.example.awesome_possum_bot_backend.Main
-ENGINE_CLASS := com.example.awesome_possum_bot_backend.Engine
-PERFT_CLASS := com.example.awesome_possum_bot_backend.Perft
+MAIN_CLASS := com.example.caissa_bot_backend.Main
+ENGINE_CLASS := com.example.caissa_bot_backend.Engine
+PERFT_CLASS := com.example.caissa_bot_backend.Perft
 
 # Compile and run
 all:

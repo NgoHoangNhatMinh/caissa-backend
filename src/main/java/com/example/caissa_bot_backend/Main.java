@@ -1,4 +1,4 @@
-package com.example.awesome_possum_bot_backend;
+package com.example.caissa_bot_backend;
 
 class Main {
     public static void main(String... args) {

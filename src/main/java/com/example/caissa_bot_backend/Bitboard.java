@@ -1,4 +1,4 @@
-package com.example.awesome_possum_bot_backend;
+package com.example.caissa_bot_backend;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -497,7 +497,7 @@ public class Bitboard {
 
             long rookBlockers = occupancy & MagicBitboards.rookRelevantOccupancy[from];
             long bishopBlockers = occupancy & MagicBitboards.bishopRelevantOccupancy[from];
-            long blockers = rookBlockers | bishopBlockers;
+            // long blockers = rookBlockers | bishopBlockers;
             // Compute index for precomputed attack table:
             // https://www.chessprogramming.org/Magic_Bitboards
             // int index = (int) ((blockers * MagicBitboards.queenMagic[from]) >>> (64

@@ -1,4 +1,4 @@
-package com.example.awesome_possum_bot_backend;
+package com.example.caissa_bot_backend;
 
 public class Evaluate {
         public static final int CHECKMATE_SCORE = 100_000;

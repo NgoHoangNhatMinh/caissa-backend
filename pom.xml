@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>awesome-possum-bot-backend</artifactId>
+	<artifactId>caissa-bot-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>awesome-possum-bot-backend</name>
-	<description>awesome possum chess bot</description>
+	<name>caissa-bot-backend</name>
+	<description>caissa chess bot</description>
 	<url/>
 	<licenses>
 		<license/>

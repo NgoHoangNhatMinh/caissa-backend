@@ -1,4 +1,4 @@
-package com.example.awesome_possum_bot_backend;
+package com.example.caissa_bot_backend;
 
 import java.util.HashMap;
 

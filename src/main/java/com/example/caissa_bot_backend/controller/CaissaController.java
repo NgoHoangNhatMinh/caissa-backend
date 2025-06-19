@@ -1,4 +1,4 @@
-package com.example.awesome_possum_bot_backend.controller;
+package com.example.caissa_bot_backend.controller;
 
 import java.util.Map;
 
@@ -8,16 +8,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.awesome_possum_bot_backend.Board;
-import com.example.awesome_possum_bot_backend.Engine;
-import com.example.awesome_possum_bot_backend.Move;
+import com.example.caissa_bot_backend.Board;
+import com.example.caissa_bot_backend.Engine;
+import com.example.caissa_bot_backend.Move;
 
 @RestController
 @CrossOrigin(origins = "*")
-public class AwesomePossomController {
+public class CaissaController {
     private Board board = new Board();
 
-    public AwesomePossomController() {
+    public CaissaController() {
         board.init();
     }
 
@@ -47,7 +47,7 @@ public class AwesomePossomController {
     @PostMapping("/best")
     public Move getBesMove(@RequestBody Map<String, Object> body) {
         String fen = (String) body.get("fen");
-        Integer depth = body.get("depth") != null ? ((Number) body.get("depth")).intValue() : 3; 
+        Integer depth = body.get("depth") != null ? ((Number) body.get("depth")).intValue() : 3;
         return Engine.generateBestMove(fen, depth);
     }
 }
