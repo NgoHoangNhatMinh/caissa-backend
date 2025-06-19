@@ -125,6 +125,9 @@ public class Perft {
         knownPerft.put("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", pos6);
     }
 
+    static Timer moveGenTimer = new Timer();
+    static Timer moveExecTimer = new Timer();
+
     public static void main(String[] args) {
         Board board = new Board();
         int maxDepth = 5;
@@ -171,6 +174,9 @@ public class Perft {
                     "----------------------------------------------------------------------------------------------");
             long end = System.currentTimeMillis();
             System.out.println("Total time taken: " + (float) (end - start) / 1000 + " s\n");
+
+            moveGenTimer.print("Move gen");
+            moveExecTimer.print("Move exec");
         }
     }
 
@@ -183,8 +189,11 @@ public class Perft {
             return;
         }
 
+        moveGenTimer.start();
         ArrayList<Move> legalMoves = board.generateLegalMoves();
+        moveGenTimer.stop();
         for (Move move : legalMoves) {
+            moveExecTimer.start();
             board.makeMove(move);
             moveHistory.add(move);
 
@@ -213,6 +222,7 @@ public class Perft {
 
             perft(board, depth - 1, counters);
             board.undoMove();
+            moveExecTimer.stop();
             moveHistory.remove(moveHistory.size() - 1);
         }
     }

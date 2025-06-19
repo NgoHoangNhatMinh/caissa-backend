@@ -10,6 +10,8 @@ COPY mvnw pom.xml ./
 
 # Copy the rest of the source code
 COPY src src
+COPY bishop_magics.txt bishop_magics.txt
+COPY rook_magics.txt rook_magics.txt
 
 # Build the application
 RUN ./mvnw clean package -DskipTests

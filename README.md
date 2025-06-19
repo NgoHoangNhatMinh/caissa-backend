@@ -16,6 +16,13 @@ To start the backend server locally, run:
 ./mvnw spring-boot:run
 ```
 
+or start a docker container ([install docker](https://docs.docker.com/desktop/setup/install/windows-install/)) with
+
+```bash
+docker build -t caissa-engine .
+docker run -p 8080:8080 caissa-engine
+```
+
 and access the endpoints at
 
 ```
