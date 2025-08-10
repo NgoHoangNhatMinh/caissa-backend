@@ -1,6 +1,7 @@
 package com.example.caissa_bot_backend;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Engine {
     public static void main(String... args) {
@@ -41,15 +42,35 @@ public class Engine {
         Move bestMove = null;
         int bestScore = Integer.MIN_VALUE;
 
+        List<SearchTask> tasks = new ArrayList<>();
+
         for (Move move : legalMoves) {
-            board.makeMove(move);
-            int score = -Search.negaMax(board, depth - 1, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            board.undoMove();
+            Board copy = board.copy();
+            copy.makeMove(move);
+            SearchTask task = new SearchTask(copy, depth - 1, Integer.MIN_VALUE,
+                    Integer.MAX_VALUE);
+            task.fork();
+            tasks.add(task);
+        }
+
+        for (int i = 0; i < tasks.size(); i++) {
+            int score = -tasks.get(i).join();
             if (score > bestScore) {
                 bestScore = score;
-                bestMove = move;
+                bestMove = legalMoves.get(i);
             }
         }
+
+        // for (Move move : legalMoves) {
+        // Board copy = board.copy();
+        // copy.makeMove(move);
+        // int score = -Search.negaMax(copy, depth - 1, Integer.MIN_VALUE,
+        // Integer.MAX_VALUE);
+        // if (score > bestScore) {
+        // bestScore = score;
+        // bestMove = move;
+        // }
+        // }
         return bestMove;
     }
 

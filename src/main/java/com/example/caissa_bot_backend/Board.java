@@ -27,7 +27,7 @@ public class Board {
 
     public boolean isWhiteBot = false;
     public boolean isBlackBot = false;
-    public int engineDepth = 3;
+    public int engineDepth = 5;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -110,7 +110,11 @@ public class Board {
             if (isWhite && isWhiteBot || !isWhite && isBlackBot) {
                 // Bot move generation
                 // selectedMove = Engine.generateBestMove(legalMoves);
+                long start = System.currentTimeMillis();
                 selectedMove = Engine.generateBestMove(this, engineDepth);
+                long finish = System.currentTimeMillis();
+                float seconds = (float) (finish - start) / 1000;
+                System.out.println("Thinking for " + (seconds) + " seconds");
                 System.out.println("Bot chose: " + selectedMove);
             } else {
                 String moveString = scanner.nextLine();
