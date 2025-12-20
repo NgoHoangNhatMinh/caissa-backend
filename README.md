@@ -1,6 +1,11 @@
 # Chess Engine
 
 This repo was migrated from https://github.com/NgoHoangNhatMinh/chess to host the engine as a backend instead of a standalone program.
+> [!NOTE]
+> This is the backend engine. The engine support CLI gameplay through typing move's input.
+> The web frontend can be accessed at [Caissa Bot](https://cvwoforum.netlify.app/).
+> 
+> The frontend repository can be accessed at [Caissa Frontend](https://github.com/NgoHoangNhatMinh/caissa-frontend).
 
 ## Getting Started
 
