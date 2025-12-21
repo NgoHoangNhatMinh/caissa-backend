@@ -1,10 +1,8 @@
 package com.example.caissa_bot_backend;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import com.example.caissa_bot_backend.move_gen.AttacksGen;
 import com.example.caissa_bot_backend.move_gen.MagicBitboards;
+import com.example.caissa_bot_backend.utils.FenParser;
 
 enum PE {
     WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK
@@ -14,8 +12,6 @@ public class Bitboard {
     public static final char[] GRAPHIC = { '♙', '♘', '♗', '♖', '♕', '♔', '♟', '♞', '♝', '♜', '♛', '♚', '.' };
     public static final String[] PIECES_STRINGS = { "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ",
             "BK" };
-    public static final long RANK_4 = 0x000000FF00000000L;
-    public static final long RANK_5 = 0x00000000FF000000L;
 
     // Bitboard gamestate
     // ----------------------------------------------------------------------
@@ -44,83 +40,17 @@ public class Bitboard {
     }
 
     public void init(String fen) {
-        String[] parts = fen.trim().split("\\s+");
-        if (parts.length > 6)
-            throw new IllegalArgumentException("Invalid FEN string");
+        FenParser parser = new FenParser(fen);
 
-        // Piece placement
-        String[] ranks = parts[0].split("/");
-        for (int i = 0; i < 8; i++) {
-            int file = 0;
-            for (char c : ranks[i].toCharArray()) {
-                if (Character.isDigit(c)) {
-                    file += Character.getNumericValue(c); // Skip empty squares
-                } else {
-                    int pos = i * 8 + file;
-                    int piece = -1;
-                    switch (c) {
-                        case 'P':
-                            piece = 0;
-                            break;
-                        case 'N':
-                            piece = 1;
-                            break;
-                        case 'B':
-                            piece = 2;
-                            break;
-                        case 'R':
-                            piece = 3;
-                            break;
-                        case 'Q':
-                            piece = 4;
-                            break;
-                        case 'K':
-                            piece = 5;
-                            break;
-                        case 'p':
-                            piece = 6;
-                            break;
-                        case 'n':
-                            piece = 7;
-                            break;
-                        case 'b':
-                            piece = 8;
-                            break;
-                        case 'r':
-                            piece = 9;
-                            break;
-                        case 'q':
-                            piece = 10;
-                            break;
-                        case 'k':
-                            piece = 11;
-                            break;
-                    }
-                    if (piece != -1) {
-                        pieces[piece] |= (1L << pos);
-                    }
-                    file++;
-                }
-            }
-        }
-
+        pieces = parser.pieces;
         updateOccupancy();
 
-        String castling = parts[2];
-        canShortCastleWhite = castling.contains("K");
-        canLongCastleWhite = castling.contains("Q");
-        canShortCastleBlack = castling.contains("k");
-        canLongCastleBlack = castling.contains("q");
+        canShortCastleWhite = parser.canShortCastleWhite;
+        canLongCastleWhite = parser.canLongCastleWhite;
+        canShortCastleBlack = parser.canShortCastleBlack;
+        canLongCastleBlack = parser.canLongCastleBlack;
 
-        String enPassant = parts[3];
-        if (enPassant.equals("-")) {
-            enPassantSquare = -1;
-        } else {
-            enPassantSquare = Move.toNum(enPassant);
-            if (enPassantSquare < 0 || enPassantSquare > 63) {
-                throw new IllegalArgumentException("Invalid en passant square in FEN string");
-            }
-        }
+        enPassantSquare = parser.enPassantSquare;
     }
 
     // Update occupancy after a move and save the hash of the position
@@ -215,24 +145,6 @@ public class Bitboard {
             canShortCastleBlack = false;
             canLongCastleBlack = false;
         }
-    }
-
-    public long wSinglePushTargets() {
-        return (pieces[0] >>> 8) & emptyOccupancy;
-    }
-
-    public long wDblPushTargets() {
-        long singlePushs = wSinglePushTargets();
-        return (singlePushs >>> 8) & emptyOccupancy & RANK_4;
-    }
-
-    public long bSinglePushTargets() {
-        return (pieces[6] << 8) & emptyOccupancy;
-    }
-
-    public long bDblPushTargets() {
-        long singlePushs = bSinglePushTargets();
-        return (singlePushs << 8) & emptyOccupancy & RANK_5;
     }
 
     public boolean isKingInCheck(boolean isWhite) {

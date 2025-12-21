@@ -6,6 +6,9 @@ import com.example.caissa_bot_backend.Bitboard;
 import com.example.caissa_bot_backend.Move;
 
 public class MoveGen {
+    private static final long RANK_4 = 0x000000FF00000000L;
+    private static final long RANK_5 = 0x00000000FF000000L;
+
     public static ArrayList<Move> generatePseudoLegalMoves(Bitboard bitboard, boolean isWhite) {
         // pseudoMoves have not accounted for king being checked after the moves are
         // made
@@ -25,8 +28,8 @@ public class MoveGen {
     public static ArrayList<Move> generatePawnMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 0 : 6;
-        long singlePushs = isWhite ? bitboard.wSinglePushTargets() : bitboard.bSinglePushTargets();
-        long doublePushs = isWhite ? bitboard.wDblPushTargets() : bitboard.bDblPushTargets();
+        long singlePushs = isWhite ? wSinglePushTargets(bitboard) : bSinglePushTargets(bitboard);
+        long doublePushs = isWhite ? wDblPushTargets(bitboard) : bDblPushTargets(bitboard);
 
         while (singlePushs != 0) {
             int to = Long.numberOfTrailingZeros(singlePushs);
@@ -102,7 +105,25 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateKnightMoves(Bitboard bitboard, boolean isWhite) {
+    private static long wSinglePushTargets(Bitboard bitboard) {
+        return (bitboard.pieces[0] >>> 8) & bitboard.emptyOccupancy;
+    }
+
+    private static long wDblPushTargets(Bitboard bitboard) {
+        long singlePushs = wSinglePushTargets(bitboard);
+        return (singlePushs >>> 8) & bitboard.emptyOccupancy & RANK_4;
+    }
+
+    private static long bSinglePushTargets(Bitboard bitboard) {
+        return (bitboard.pieces[6] << 8) & bitboard.emptyOccupancy;
+    }
+
+    private static long bDblPushTargets(Bitboard bitboard) {
+        long singlePushs = bSinglePushTargets(bitboard);
+        return (singlePushs << 8) & bitboard.emptyOccupancy & RANK_5;
+    }
+
+    private static ArrayList<Move> generateKnightMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 1 : 7;
         long knights = bitboard.pieces[currPiece];
@@ -127,7 +148,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateBishopMoves(Bitboard bitboard, boolean isWhite) {
+    private static ArrayList<Move> generateBishopMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 2 : 8;
         long bishops = bitboard.pieces[currPiece];
@@ -159,7 +180,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateRookMoves(Bitboard bitboard, boolean isWhite) {
+    private static ArrayList<Move> generateRookMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 3 : 9;
         long rooks = bitboard.pieces[currPiece];
@@ -193,7 +214,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateQueenMoves(Bitboard bitboard, boolean isWhite) {
+    private static ArrayList<Move> generateQueenMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 4 : 10;
         long queens = bitboard.pieces[currPiece];
@@ -238,7 +259,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateKingMoves(Bitboard bitboard, boolean isWhite) {
+    private static ArrayList<Move> generateKingMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 5 : 11;
         long kings = bitboard.pieces[currPiece];
@@ -262,7 +283,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    public static ArrayList<Move> generateCastlingMoves(Bitboard bitboard, boolean isWhite) {
+    private static ArrayList<Move> generateCastlingMoves(Bitboard bitboard, boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
 
         boolean canShortCastle = isWhite ? bitboard.canShortCastleWhite : bitboard.canShortCastleBlack;
