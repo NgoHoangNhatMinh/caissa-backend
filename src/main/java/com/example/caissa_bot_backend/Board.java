@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
+import com.example.caissa_bot_backend.engine.Engine;
+import com.example.caissa_bot_backend.utils.Display;
+
 public class Board {
     // Gamestate
     // -------------------------------------------------------------------------------------------------------
@@ -68,7 +71,7 @@ public class Board {
     }
 
     public void run() {
-        OtherUtils.clearScreen();
+        Display.clearScreen();
         Scanner scanner = new Scanner(System.in);
         while (!bitboard.isGameOver()) {
             System.out.println(bitboard);

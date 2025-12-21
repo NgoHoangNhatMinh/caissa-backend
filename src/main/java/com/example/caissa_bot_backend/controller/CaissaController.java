@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.caissa_bot_backend.Board;
-import com.example.caissa_bot_backend.Engine;
 import com.example.caissa_bot_backend.Move;
+import com.example.caissa_bot_backend.engine.Engine;
 
 @RestController
 @CrossOrigin(origins = "*")

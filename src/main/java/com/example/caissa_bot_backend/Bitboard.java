@@ -3,25 +3,19 @@ package com.example.caissa_bot_backend;
 import java.util.ArrayList;
 import java.util.Random;
 
+import com.example.caissa_bot_backend.move_gen.AttacksGen;
+import com.example.caissa_bot_backend.move_gen.MagicBitboards;
+
 enum PE {
     WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK
 }
 
 public class Bitboard {
-    public static final long H = 0x8080808080808080L;
-    public static final long A = 0x0101010101010101L;
-    public static final long GH = 0xC0C0C0C0C0C0C0C0L;
-    public static final long AB = 0x0303030303030303L;
     public static final char[] GRAPHIC = { '♙', '♘', '♗', '♖', '♕', '♔', '♟', '♞', '♝', '♜', '♛', '♚', '.' };
     public static final String[] PIECES_STRINGS = { "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ",
             "BK" };
     public static final long RANK_4 = 0x000000FF00000000L;
     public static final long RANK_5 = 0x00000000FF000000L;
-
-    static long[] knightAttacks = new long[64];
-    static long[] kingAttacks = new long[64];
-    static long[] whitePawnAttacks = new long[64];
-    static long[] blackPawnAttacks = new long[64];
 
     // Bitboard gamestate
     // ----------------------------------------------------------------------
@@ -46,7 +40,7 @@ public class Bitboard {
     public static long zobristWhiteToMove;
 
     static {
-        initAttacks();
+        AttacksGen.initAttacks();
         MagicBitboards.init();
     }
 
@@ -145,16 +139,6 @@ public class Bitboard {
         pieces[12] = emptyOccupancy;
     }
 
-    // Generate the loopup attacks table for knight and king
-    private static void initAttacks() {
-        for (int i = 0; i < 64; i++) {
-            knightAttacks[i] = generateKnightAttack(i);
-            kingAttacks[i] = generateKingAttack(i);
-            whitePawnAttacks[i] = generateWhitePawnAttack(i);
-            blackPawnAttacks[i] = generateBlackPawnAttack(i);
-        }
-    }
-
     public Bitboard copy() {
         Bitboard newBB = new Bitboard();
         for (int i = 0; i < pieces.length; i++) {
@@ -171,64 +155,6 @@ public class Bitboard {
         newBB.enPassantSquare = enPassantSquare;
         newBB.isGameOver = isGameOver;
         return newBB;
-    }
-
-    // Generate the possible knight attacks on 1 of the 64 squares
-    public static long generateKnightAttack(int square) {
-        long init = 1L << square;
-        long knightAttack = 0L;
-
-        // Check if the attack doesn't wrap around to the opposite side of the board
-        knightAttack |= (init >>> 6) & ~AB;
-        knightAttack |= (init >>> 10) & ~GH;
-        knightAttack |= (init >>> 17) & ~H;
-        knightAttack |= (init >>> 15) & ~A;
-
-        knightAttack |= (init << 6) & ~GH;
-        knightAttack |= (init << 10) & ~AB;
-        knightAttack |= (init << 17) & ~A;
-        knightAttack |= (init << 15) & ~H;
-
-        return knightAttack;
-    }
-
-    // Generate the possible king attacks on 1 of the 64 squares
-    public static long generateKingAttack(int square) {
-        long init = 1L << square;
-        long kingAttack = 0L;
-
-        // Check if the attack doesn't wrap around to the opposite side of the board
-        kingAttack |= (init << 1) & ~A;
-        kingAttack |= (init << 9) & ~A;
-        kingAttack |= (init >>> 7) & ~A;
-
-        kingAttack |= (init >>> 1) & ~H;
-        kingAttack |= (init >>> 9) & ~H;
-        kingAttack |= (init << 7) & ~H;
-
-        kingAttack |= (init >>> 8) | (init << 8);
-
-        return kingAttack;
-    }
-
-    public static long generateWhitePawnAttack(int square) {
-        long init = 1L << square;
-        long pawnAttack = 0L;
-
-        pawnAttack |= (init >>> 7) & ~A;
-        pawnAttack |= (init >>> 9) & ~H;
-
-        return pawnAttack;
-    }
-
-    public static long generateBlackPawnAttack(int square) {
-        long init = 1L << square;
-        long pawnAttack = 0L;
-
-        pawnAttack |= (init << 7) & ~H;
-        pawnAttack |= (init << 9) & ~A;
-
-        return pawnAttack;
     }
 
     public void removePiece(int piece, int from) {
@@ -350,7 +276,7 @@ public class Bitboard {
             }
 
             // Capture
-            long possible = isWhite ? whitePawnAttacks[from] : blackPawnAttacks[from];
+            long possible = isWhite ? AttacksGen.whitePawnAttacks[from] : AttacksGen.blackPawnAttacks[from];
             possible &= opponentOccupancy;
 
             while (possible != 0) {
@@ -404,7 +330,7 @@ public class Bitboard {
         // Get the leading 1s in the knights biboard
         while (knights != 0) {
             int from = Long.numberOfTrailingZeros(knights);
-            long possible = knightAttacks[from] & ~ownOccupancy;
+            long possible = AttacksGen.knightAttacks[from] & ~ownOccupancy;
 
             while (possible != 0) {
                 int to = Long.numberOfTrailingZeros(possible);
@@ -539,7 +465,7 @@ public class Bitboard {
 
         while (kings != 0) {
             int from = Long.numberOfTrailingZeros(kings);
-            long possible = kingAttacks[from] & ~ownOccupancy;
+            long possible = AttacksGen.kingAttacks[from] & ~ownOccupancy;
 
             while (possible != 0) {
                 int to = Long.numberOfTrailingZeros(possible);
@@ -600,11 +526,11 @@ public class Bitboard {
         long opponentKing = isWhite ? pieces[11] : pieces[5];
 
         // putting the piece at the king square and attack out to opponent pieces
-        long pawnAttacks = isWhite ? whitePawnAttacks[from] : blackPawnAttacks[from];
+        long pawnAttacks = isWhite ? AttacksGen.whitePawnAttacks[from] : AttacksGen.blackPawnAttacks[from];
         if ((pawnAttacks & opponentPawns) != 0)
             return true;
 
-        if ((knightAttacks[from] & opponentKnights) != 0)
+        if ((AttacksGen.knightAttacks[from] & opponentKnights) != 0)
             return true;
 
         // Check for bishop and queen's diagional
@@ -619,7 +545,7 @@ public class Bitboard {
         if ((rookAttacks & (opponentRooks | opponentQueens)) != 0)
             return true;
 
-        if ((kingAttacks[from] & opponentKing) != 0)
+        if ((AttacksGen.kingAttacks[from] & opponentKing) != 0)
             return true;
 
         return false;

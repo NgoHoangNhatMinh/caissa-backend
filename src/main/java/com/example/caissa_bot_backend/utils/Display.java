@@ -1,6 +1,6 @@
-package com.example.caissa_bot_backend;
+package com.example.caissa_bot_backend.utils;
 
-public class OtherUtils {
+public class Display {
     public static void print(long board) {
         // String boardStr = "";
         for (int i = 0; i < 8; i++) {

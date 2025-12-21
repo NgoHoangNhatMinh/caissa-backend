@@ -1,4 +1,4 @@
-package com.example.caissa_bot_backend;
+package com.example.caissa_bot_backend.move_gen;
 
 import java.util.Random;
 import java.util.Map;

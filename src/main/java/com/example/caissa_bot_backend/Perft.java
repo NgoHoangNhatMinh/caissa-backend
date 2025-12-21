@@ -2,6 +2,8 @@ package com.example.caissa_bot_backend;
 
 import java.util.*;
 
+import com.example.caissa_bot_backend.utils.Timer;
+
 public class Perft {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_GREEN = "\u001B[32m";

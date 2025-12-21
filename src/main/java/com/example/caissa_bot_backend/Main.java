@@ -3,7 +3,6 @@ package com.example.caissa_bot_backend;
 class Main {
     public static void main(String... args) {
         Board board = new Board();
-        // board.init();
         board.init();
 
         if (args.length > 0) {
