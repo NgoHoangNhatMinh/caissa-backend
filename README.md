@@ -44,6 +44,13 @@ ke1e2 // king e1 to e2
 e7e8_q // for promotion to queen
 ```
 
+## GUI Gameplay
+The web frontend can be accessed at [Caissa Bot](https://cvwoforum.netlify.app/).
+
+To test local frontend with local backend, clone the frontend repository at [Caissa Frontend](https://github.com/NgoHoangNhatMinh/caissa-frontend) and follow the instructions there.
+
+<img width="1889" height="853" alt="image" src="https://github.com/user-attachments/assets/ece3d0ec-bafd-4b83-9f59-3ce9de919518" />
+
 ## CLI Testing
 
 Move generations can be checked by performing a Perft tests. At each depth, count all possible legal moves generated and compare against some reputable known values.
@@ -77,3 +84,5 @@ Here's the first few values from the initial positions
 The program has included 6 different starting positions for a more robust testing of move generations across different positions.
 
 **Tips**: For most chess engines, perft is usually tested up to depth 6 or 7, as it takes exponentially longer for more than that.
+<img width="1250" height="922" alt="image" src="https://github.com/user-attachments/assets/a1d18674-2d28-47f3-81fc-8771ef37c995" />
+
