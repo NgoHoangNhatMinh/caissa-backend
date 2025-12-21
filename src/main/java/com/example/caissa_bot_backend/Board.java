@@ -1,8 +1,6 @@
 package com.example.caissa_bot_backend;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -19,14 +17,11 @@ public class Board {
     private boolean isWhite;
     private int halfMovesSinceReset = 0;
     private int fullMoves = 1;
-    private Map<Long, Integer> zobristMap = new HashMap<>();
     private Zobrist zobrist;
 
     // -------------------------------------------------------------------------------------------------------
 
     private Stack<Board> gameHistory = new Stack<>();
-
-    // -------------------------------------------------------------------------------------------------------
 
     // For engine play
     // -------------------------------------------------------------------------------------------------------
@@ -82,8 +77,7 @@ public class Board {
             System.out.println(bitboard);
 
             // Mark the current position as visited by adding to zobrist map
-            long hash = zobrist.zobristHash(bitboard, isWhite);
-            zobristMap.put(hash, zobristMap.getOrDefault(hash, 0) + 1);
+            zobrist.zobristHash(bitboard, isWhite);
 
             ArrayList<Move> legalMoves = generateLegalMoves();
 
@@ -151,13 +145,11 @@ public class Board {
         newBoard.isWhite = isWhite;
         newBoard.halfMovesSinceReset = halfMovesSinceReset;
         newBoard.fullMoves = fullMoves;
-        for (Long key : zobristMap.keySet()) {
-            newBoard.zobristMap.put(key, zobristMap.get(key));
-        }
-        newBoard.zobrist = zobrist;
-
         newBoard.isWhiteBot = isWhiteBot;
         newBoard.isBlackBot = isBlackBot;
+
+        newBoard.zobrist = zobrist.copy();
+
         return newBoard;
     }
 
@@ -276,15 +268,14 @@ public class Board {
         this.isWhite = previousBoard.isWhite;
         this.halfMovesSinceReset = previousBoard.halfMovesSinceReset;
         this.fullMoves = previousBoard.fullMoves;
-        this.zobristMap = new HashMap<>(previousBoard.zobristMap);
+        this.zobrist = previousBoard.zobrist;
         this.isWhiteBot = previousBoard.isWhiteBot;
         this.isBlackBot = previousBoard.isBlackBot;
         bitboard.updateOccupancy();
     }
 
     public boolean isThreefoldRepetition() {
-        long hash = zobristHash();
-        return zobristMap.getOrDefault(hash, 0) >= 3;
+        return zobrist.count(bitboard, isWhite) >= 3;
     }
 
     public boolean isCheck() {

@@ -30,11 +30,6 @@ public class Bitboard {
 
     // ----------------------------------------------------------------------
 
-    static {
-        AttacksGen.initAttacks();
-        MagicBitboards.init();
-    }
-
     public void init() {
         init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     }

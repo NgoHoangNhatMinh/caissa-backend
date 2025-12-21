@@ -70,10 +70,6 @@ public class MagicBitboards {
         }
     }
 
-    public static void init() {
-
-    }
-
     private static long generateRookRelevantOccupancy(int i) {
         long relevantOccupancy = 0L;
         int r = i / 8;

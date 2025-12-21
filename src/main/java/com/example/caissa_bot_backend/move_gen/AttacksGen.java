@@ -14,7 +14,7 @@ public class AttacksGen {
     public static long[] blackPawnAttacks = new long[64];
 
     // Pre-compute the loopup attacks table for knight and king
-    public static void initAttacks() {
+    static {
         for (int i = 0; i < 64; i++) {
             knightAttacks[i] = generateKnightAttack(i);
             kingAttacks[i] = generateKingAttack(i);

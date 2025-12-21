@@ -1,17 +1,21 @@
 package com.example.caissa_bot_backend.utils;
 
+import java.util.HashMap;
 import java.util.Random;
 
 import com.example.caissa_bot_backend.Bitboard;
 
 public class Zobrist {
-    private long[][] zobristPiece = new long[12][64];
-    private long[] zobristCastle = new long[16];
-    private long[] zobristEnPassant = new long[8];
-    private long zobristWhiteToMove;
+    private static long[][] zobristPiece = new long[12][64];
+    private static long[] zobristCastle = new long[16];
+    private static long[] zobristEnPassant = new long[8];
+    private static long zobristWhiteToMove;
 
-    public Zobrist() {
-        Random random = new Random();
+    private HashMap<Long, Integer> map = new HashMap<>();
+
+    static {
+        int seed = 0;
+        Random random = new Random(seed);
 
         for (int i = 0; i < zobristPiece.length; i++) {
             for (int j = 0; j < zobristPiece[i].length; j++) {
@@ -60,6 +64,17 @@ public class Zobrist {
             hash ^= zobristWhiteToMove;
         }
 
+        map.put(hash, map.getOrDefault(hash, 0) + 1);
         return hash;
+    }
+
+    public int count(Bitboard bitboard, boolean isWhite) {
+        return map.getOrDefault(zobristHash(bitboard, isWhite), 0);
+    }
+
+    public Zobrist copy() {
+        Zobrist copy = new Zobrist();
+        copy.map = new HashMap<Long, Integer>(map);
+        return copy;
     }
 }
