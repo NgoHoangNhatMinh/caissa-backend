@@ -7,7 +7,9 @@ import java.util.Scanner;
 import java.util.Stack;
 
 import com.example.caissa_bot_backend.engine.Engine;
+import com.example.caissa_bot_backend.move_gen.MoveGen;
 import com.example.caissa_bot_backend.utils.Display;
+import com.example.caissa_bot_backend.utils.Zobrist;
 
 public class Board {
     // Gamestate
@@ -18,6 +20,7 @@ public class Board {
     private int halfMovesSinceReset = 0;
     private int fullMoves = 1;
     private Map<Long, Integer> zobristMap = new HashMap<>();
+    private Zobrist zobrist;
 
     // -------------------------------------------------------------------------------------------------------
 
@@ -45,6 +48,8 @@ public class Board {
 
         bitboard = new Bitboard();
         bitboard.init(fen);
+
+        zobrist = new Zobrist();
 
         // Color to move
         String color = parts[1];
@@ -77,7 +82,7 @@ public class Board {
             System.out.println(bitboard);
 
             // Mark the current position as visited by adding to zobrist map
-            long hash = bitboard.zobristHash(isWhite);
+            long hash = zobrist.zobristHash(bitboard, isWhite);
             zobristMap.put(hash, zobristMap.getOrDefault(hash, 0) + 1);
 
             ArrayList<Move> legalMoves = generateLegalMoves();
@@ -149,6 +154,7 @@ public class Board {
         for (Long key : zobristMap.keySet()) {
             newBoard.zobristMap.put(key, zobristMap.get(key));
         }
+        newBoard.zobrist = zobrist;
 
         newBoard.isWhiteBot = isWhiteBot;
         newBoard.isBlackBot = isBlackBot;
@@ -165,24 +171,8 @@ public class Board {
         return false;
     }
 
-    public ArrayList<Move> generatePseudoLegalMoves() {
-        // pseudoMoves have not accounted for king being checked after the moves are
-        // made
-        ArrayList<Move> pseudoMoves = new ArrayList<Move>();
-
-        pseudoMoves.addAll(bitboard.generatePawnMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateKnightMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateBishopMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateRookMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateQueenMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateKingMoves(isWhite));
-        pseudoMoves.addAll(bitboard.generateCastlingMoves(isWhite));
-
-        return pseudoMoves;
-    }
-
     public ArrayList<Move> generateLegalMoves() {
-        ArrayList<Move> pseudoMoves = generatePseudoLegalMoves();
+        ArrayList<Move> pseudoMoves = MoveGen.generatePseudoLegalMoves(bitboard, isWhite);
         ArrayList<Move> legalMoves = new ArrayList<>();
 
         for (Move move : pseudoMoves) {
@@ -338,7 +328,7 @@ public class Board {
     }
 
     public long zobristHash() {
-        return bitboard.zobristHash(isWhite);
+        return zobrist.zobristHash(bitboard, isWhite);
     }
 
     public boolean isFiftyMove() {

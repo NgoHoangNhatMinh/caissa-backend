@@ -20,8 +20,8 @@ public class Bitboard {
     // Bitboard gamestate
     // ----------------------------------------------------------------------
 
-    long[] pieces = new long[13];
-    long whiteOccupancy, blackOccupancy, occupancy, emptyOccupancy;
+    public long[] pieces = new long[13];
+    public long whiteOccupancy, blackOccupancy, occupancy, emptyOccupancy;
 
     public boolean canShortCastleWhite;
     public boolean canLongCastleWhite;
@@ -33,11 +33,6 @@ public class Bitboard {
     private boolean isGameOver;
 
     // ----------------------------------------------------------------------
-
-    public static long[][] zobristPiece = new long[12][64];
-    public static long[] zobristCastle = new long[16];
-    public static long[] zobristEnPassant = new long[8];
-    public static long zobristWhiteToMove;
 
     static {
         AttacksGen.initAttacks();
@@ -126,8 +121,6 @@ public class Bitboard {
                 throw new IllegalArgumentException("Invalid en passant square in FEN string");
             }
         }
-
-        generateRandomZobrist();
     }
 
     // Update occupancy after a move and save the hash of the position
@@ -224,85 +217,6 @@ public class Bitboard {
         }
     }
 
-    public ArrayList<Move> generatePawnMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 0 : 6;
-        long singlePushs = isWhite ? wSinglePushTargets() : bSinglePushTargets();
-        long doublePushs = isWhite ? wDblPushTargets() : bDblPushTargets();
-
-        while (singlePushs != 0) {
-            int to = Long.numberOfTrailingZeros(singlePushs);
-            if (isWhite) {
-                if (to / 8 == 0)
-                    for (int i = 1; i < 5; i++)
-                        possibleMoves.add(new Move(to + 8, to, currPiece, -1, false, i));
-                else
-                    possibleMoves.add(new Move(to + 8, to, currPiece, -1, false, -1));
-            } else {
-                if (to / 8 == 7)
-                    for (int i = 7; i < 11; i++)
-                        possibleMoves.add(new Move(to - 8, to, currPiece, -1, false, i));
-                else
-                    possibleMoves.add(new Move(to - 8, to, currPiece, -1, false, -1));
-            }
-            singlePushs &= singlePushs - 1;
-        }
-
-        while (doublePushs != 0) {
-            int to = Long.numberOfTrailingZeros(doublePushs);
-            if (isWhite) {
-                possibleMoves.add(new Move(to + 16, to, 0, -1, false, -1));
-            } else {
-                possibleMoves.add(new Move(to - 16, to, 6, -1, false, -1));
-            }
-            doublePushs &= doublePushs - 1;
-        }
-
-        // En Passant
-        long pawns = pieces[currPiece];
-        long opponentOccupancy = isWhite ? blackOccupancy : whiteOccupancy;
-
-        while (pawns != 0) {
-            int from = Long.numberOfTrailingZeros(pawns);
-
-            if (enPassantSquare != -1) {
-                // System.out.println("En passant square: " + enPassantSquare);
-                if (isWhite && (from / 8 == 3) && Math.abs(enPassantSquare % 8 - from % 8) == 1) {
-                    possibleMoves.add(new Move(from, enPassantSquare, 0, enPassantSquare + 8, true, -1));
-                }
-                if (!isWhite && (from / 8 == 4) && Math.abs(enPassantSquare % 8 - from % 8) == 1) {
-                    possibleMoves.add(new Move(from, enPassantSquare, 6, enPassantSquare - 8, true, -1));
-                }
-            }
-
-            // Capture
-            long possible = isWhite ? AttacksGen.whitePawnAttacks[from] : AttacksGen.blackPawnAttacks[from];
-            possible &= opponentOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                if (isWhite) {
-                    if (to / 8 == 0)
-                        for (int i = 1; i < 5; i++)
-                            possibleMoves.add(new Move(from, to, currPiece, to, false, i));
-                    else
-                        possibleMoves.add(new Move(from, to, currPiece, to, false, -1));
-                } else {
-                    if (to / 8 == 7)
-                        for (int i = 7; i < 11; i++)
-                            possibleMoves.add(new Move(from, to, currPiece, to, false, i));
-                    else
-                        possibleMoves.add(new Move(from, to, currPiece, to, false, -1));
-                }
-                // possibleMoves.add(new Move(from, to, currPiece));
-                possible &= possible - 1;
-            }
-            pawns &= pawns - 1;
-        }
-
-        return possibleMoves;
-    }
-
     public long wSinglePushTargets() {
         return (pieces[0] >>> 8) & emptyOccupancy;
     }
@@ -319,197 +233,6 @@ public class Bitboard {
     public long bDblPushTargets() {
         long singlePushs = bSinglePushTargets();
         return (singlePushs << 8) & emptyOccupancy & RANK_5;
-    }
-
-    public ArrayList<Move> generateKnightMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 1 : 7;
-        long knights = pieces[currPiece];
-        long ownOccupancy = isWhite ? whiteOccupancy : blackOccupancy;
-
-        // Get the leading 1s in the knights biboard
-        while (knights != 0) {
-            int from = Long.numberOfTrailingZeros(knights);
-            long possible = AttacksGen.knightAttacks[from] & ~ownOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                int capturedSquare = isOccuppied(to) ? to : -1;
-                possibleMoves.add(new Move(from, to, currPiece, capturedSquare, false, -1));
-
-                possible &= possible - 1;
-            }
-
-            knights &= knights - 1;
-        }
-
-        return possibleMoves;
-    }
-
-    public ArrayList<Move> generateBishopMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 2 : 8;
-        long bishops = pieces[currPiece];
-        long ownOccupancy = isWhite ? whiteOccupancy : blackOccupancy;
-
-        while (bishops != 0) {
-            int from = Long.numberOfTrailingZeros(bishops);
-
-            long mask = MagicBitboards.bishopRelevantOccupancy[from];
-            long blockers = occupancy & mask;
-            // Compute index for precomputed attack table:
-            // https://www.chessprogramming.org/Magic_Bitboards
-            int index = (int) ((blockers * MagicBitboards.bishopMagic[from]) >>> (64
-                    - Long.bitCount(MagicBitboards.bishopRelevantOccupancy[from])));
-            long attacks = MagicBitboards.bishopAttacks[from][index];
-            // Long attacks = MagicBitboards.computeBishopAttacks(from, blockers);
-
-            long possible = attacks & ~ownOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                int capturedSquare = isOccuppied(to) ? to : -1;
-                possibleMoves.add(new Move(from, to, currPiece, capturedSquare, false, -1));
-                possible &= possible - 1;
-            }
-            bishops &= bishops - 1;
-        }
-
-        return possibleMoves;
-    }
-
-    public ArrayList<Move> generateRookMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 3 : 9;
-        long rooks = pieces[currPiece];
-        long ownOccupancy = isWhite ? whiteOccupancy : blackOccupancy;
-
-        while (rooks != 0) {
-            int from = Long.numberOfTrailingZeros(rooks);
-
-            long mask = MagicBitboards.rookRelevantOccupancy[from];
-            long blockers = occupancy & mask;
-
-            // Compute index for precomputed attack table:
-            // https://www.chessprogramming.org/Magic_Bitboards
-            int relevantBits = Long.bitCount(MagicBitboards.rookRelevantOccupancy[from]);
-            int index = (int) ((blockers * MagicBitboards.rookMagic[from]) >>> (64
-                    - relevantBits));
-            long attacks = MagicBitboards.rookAttacks[from][index];
-            // long attacks = MagicBitboards.computeRookAttacks(from, blockers);
-
-            long possible = attacks & ~ownOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                int capturedSquare = isOccuppied(to) ? to : -1;
-                possibleMoves.add(new Move(from, to, currPiece, capturedSquare, false, -1));
-                possible &= possible - 1;
-            }
-            rooks &= rooks - 1;
-        }
-
-        return possibleMoves;
-    }
-
-    public ArrayList<Move> generateQueenMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 4 : 10;
-        long queens = pieces[currPiece];
-        long ownOccupancy = isWhite ? whiteOccupancy : blackOccupancy;
-
-        while (queens != 0) {
-            int from = Long.numberOfTrailingZeros(queens);
-
-            long rookBlockers = occupancy & MagicBitboards.rookRelevantOccupancy[from];
-            long bishopBlockers = occupancy & MagicBitboards.bishopRelevantOccupancy[from];
-            // long blockers = rookBlockers | bishopBlockers;
-            // Compute index for precomputed attack table:
-            // https://www.chessprogramming.org/Magic_Bitboards
-            // int index = (int) ((blockers * MagicBitboards.queenMagic[from]) >>> (64
-            // - Long.bitCount(MagicBitboards.queenRelevantOccupancy[from])));
-            // long attacks = MagicBitboards.queenAttacks[from][index];
-
-            int relevantBishopBits = Long.bitCount(MagicBitboards.bishopRelevantOccupancy[from]);
-            int bishopIndex = (int) ((bishopBlockers * MagicBitboards.bishopMagic[from]) >>> (64
-                    - relevantBishopBits));
-            long bishopAttacks = MagicBitboards.bishopAttacks[from][bishopIndex];
-
-            int relevantRookBits = Long.bitCount(MagicBitboards.rookRelevantOccupancy[from]);
-            int index = (int) ((rookBlockers * MagicBitboards.rookMagic[from]) >>> (64
-                    - relevantRookBits));
-            long rookAttacks = MagicBitboards.rookAttacks[from][index];
-
-            long attacks = bishopAttacks | rookAttacks;
-            // long attacks = MagicBitboards.computeBishopAttacks(from, blockers)
-            // | MagicBitboards.computeRookAttacks(from, blockers);
-            long possible = attacks & ~ownOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                int capturedSquare = isOccuppied(to) ? to : -1;
-                possibleMoves.add(new Move(from, to, currPiece, capturedSquare, false, -1));
-                possible &= possible - 1;
-            }
-            queens &= queens - 1;
-        }
-
-        return possibleMoves;
-    }
-
-    public ArrayList<Move> generateKingMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-        int currPiece = isWhite ? 5 : 11;
-        long kings = pieces[currPiece];
-        long ownOccupancy = isWhite ? whiteOccupancy : blackOccupancy;
-
-        while (kings != 0) {
-            int from = Long.numberOfTrailingZeros(kings);
-            long possible = AttacksGen.kingAttacks[from] & ~ownOccupancy;
-
-            while (possible != 0) {
-                int to = Long.numberOfTrailingZeros(possible);
-                int capturedSquare = isOccuppied(to) ? to : -1;
-                possibleMoves.add(new Move(from, to, currPiece, capturedSquare, false, -1));
-
-                possible &= possible - 1;
-            }
-
-            kings &= kings - 1;
-        }
-
-        return possibleMoves;
-    }
-
-    public ArrayList<Move> generateCastlingMoves(boolean isWhite) {
-        ArrayList<Move> possibleMoves = new ArrayList<>();
-
-        boolean canShortCastle = isWhite ? canShortCastleWhite : canShortCastleBlack;
-        boolean canLongCastle = isWhite ? canLongCastleWhite : canLongCastleBlack;
-
-        if (canShortCastle) {
-            boolean empty = isWhite
-                    ? ((occupancy & ((1L << 61) | (1L << 62))) == 0)
-                    : ((occupancy & ((1L << 5) | (1L << 6))) == 0);
-            boolean safe = !isKingInCheck(isWhite)
-                    && !isKingInCheck(isWhite, isWhite ? 61 : 5)
-                    && !isKingInCheck(isWhite, isWhite ? 62 : 6);
-            if (empty && safe) {
-                possibleMoves.add(new Move("0-0", isWhite));
-            }
-        }
-        if (canLongCastle) {
-            boolean empty = isWhite
-                    ? ((occupancy & ((1L << 59) | (1L << 58) | (1L << 57))) == 0)
-                    : ((occupancy & ((1L << 3) | (1L << 2) | (1L << 1))) == 0);
-            boolean safe = !isKingInCheck(isWhite)
-                    && !isKingInCheck(isWhite, isWhite ? 59 : 3)
-                    && !isKingInCheck(isWhite, isWhite ? 58 : 2);
-            if (empty && safe) {
-                possibleMoves.add(new Move("0-0-0", isWhite));
-            }
-        }
-        return possibleMoves;
     }
 
     public boolean isKingInCheck(boolean isWhite) {
@@ -560,39 +283,6 @@ public class Bitboard {
         return isChecked;
     }
 
-    public long zobristHash(boolean isWhite) {
-        long hash = 0L;
-        for (int i = 0; i < 12; i++) {
-            long bitboard = pieces[i];
-            while (bitboard != 0) {
-                int sq = Long.numberOfTrailingZeros(bitboard);
-                hash ^= zobristPiece[i][sq];
-                bitboard &= bitboard - 1;
-            }
-        }
-
-        int castle = 0;
-        if (canShortCastleWhite)
-            castle |= 1;
-        if (canLongCastleWhite)
-            castle |= 2;
-        if (canShortCastleBlack)
-            castle |= 4;
-        if (canLongCastleBlack)
-            castle |= 8;
-        hash ^= zobristCastle[castle];
-
-        if (enPassantSquare != -1) {
-            hash ^= zobristEnPassant[enPassantSquare % 8]; // Only the file is needed for the hash
-        }
-
-        if (!isWhite) {
-            hash ^= zobristWhiteToMove;
-        }
-
-        return hash;
-    }
-
     public boolean isInsufficientMaterial() {
         if ((pieces[0] | pieces[6]) == 0) { // No pawns
             int whitePieces = Long.bitCount(pieces[1] | pieces[2] | pieces[3] | pieces[4] | pieces[5]);
@@ -610,26 +300,6 @@ public class Bitboard {
 
     public boolean isGameOver() {
         return isGameOver;
-    }
-
-    private void generateRandomZobrist() {
-        Random random = new Random();
-
-        for (int i = 0; i < zobristPiece.length; i++) {
-            for (int j = 0; j < zobristPiece[i].length; j++) {
-                zobristPiece[i][j] = random.nextLong();
-            }
-        }
-
-        for (int i = 0; i < zobristCastle.length; i++) {
-            zobristCastle[i] = random.nextLong();
-        }
-
-        for (int i = 0; i < zobristEnPassant.length; i++) {
-            zobristEnPassant[i] = random.nextLong();
-        }
-
-        zobristWhiteToMove = random.nextLong();
     }
 
     public long[] getPieces() {
