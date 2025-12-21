@@ -2,6 +2,8 @@ package com.example.caissa_bot_backend;
 
 import java.util.*;
 
+import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Move;
 import com.example.caissa_bot_backend.utils.Timer;
 
 public class Perft {

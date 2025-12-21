@@ -1,4 +1,4 @@
-package com.example.caissa_bot_backend;
+package com.example.caissa_bot_backend.board_representation;
 
 import java.util.HashMap;
 

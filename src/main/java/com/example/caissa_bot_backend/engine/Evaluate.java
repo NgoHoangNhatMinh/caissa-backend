@@ -1,6 +1,6 @@
 package com.example.caissa_bot_backend.engine;
 
-import com.example.caissa_bot_backend.Board;
+import com.example.caissa_bot_backend.board_representation.Board;
 
 public class Evaluate {
         public static final int CHECKMATE_SCORE = 100_000;

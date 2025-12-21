@@ -1,5 +1,7 @@
 package com.example.caissa_bot_backend;
 
+import com.example.caissa_bot_backend.board_representation.Board;
+
 class Main {
     public static void main(String... args) {
         Board board = new Board();

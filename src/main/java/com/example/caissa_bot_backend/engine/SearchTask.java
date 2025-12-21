@@ -2,7 +2,7 @@ package com.example.caissa_bot_backend.engine;
 
 import java.util.concurrent.RecursiveTask;
 
-import com.example.caissa_bot_backend.Board;
+import com.example.caissa_bot_backend.board_representation.Board;
 
 public class SearchTask extends RecursiveTask<Integer> {
     private Board board;

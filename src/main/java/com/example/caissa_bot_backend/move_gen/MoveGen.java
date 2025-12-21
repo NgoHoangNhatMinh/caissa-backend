@@ -2,8 +2,8 @@ package com.example.caissa_bot_backend.move_gen;
 
 import java.util.ArrayList;
 
-import com.example.caissa_bot_backend.Bitboard;
-import com.example.caissa_bot_backend.Move;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
+import com.example.caissa_bot_backend.board_representation.Move;
 
 public class MoveGen {
     private static final long RANK_4 = 0x000000FF00000000L;

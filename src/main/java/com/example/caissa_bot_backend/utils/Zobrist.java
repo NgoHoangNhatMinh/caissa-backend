@@ -3,7 +3,7 @@ package com.example.caissa_bot_backend.utils;
 import java.util.HashMap;
 import java.util.Random;
 
-import com.example.caissa_bot_backend.Bitboard;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 
 public class Zobrist {
     private static long[][] zobristPiece = new long[12][64];

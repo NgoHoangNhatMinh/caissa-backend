@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import com.example.caissa_bot_backend.Board;
-import com.example.caissa_bot_backend.Move;;
+import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Move;;
 
 public class Search {
     public static HashMap<Long, TranspositionEntry> transpositionTable = new HashMap<>();

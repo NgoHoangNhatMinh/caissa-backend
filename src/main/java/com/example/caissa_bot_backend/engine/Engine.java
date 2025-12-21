@@ -3,8 +3,8 @@ package com.example.caissa_bot_backend.engine;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.caissa_bot_backend.Board;
-import com.example.caissa_bot_backend.Move;
+import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Move;
 
 public class Engine {
     public static void main(String... args) {

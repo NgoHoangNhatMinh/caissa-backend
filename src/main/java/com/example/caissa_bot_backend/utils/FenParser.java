@@ -1,6 +1,6 @@
 package com.example.caissa_bot_backend.utils;
 
-import com.example.caissa_bot_backend.Move;
+import com.example.caissa_bot_backend.board_representation.Move;
 
 public class FenParser {
     public long[] pieces = new long[13];

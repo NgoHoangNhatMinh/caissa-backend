@@ -1,9 +1,10 @@
-package com.example.caissa_bot_backend;
+package com.example.caissa_bot_backend.board_representation;
 
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
 
+import com.example.caissa_bot_backend.board_representation.Move;
 import com.example.caissa_bot_backend.engine.Engine;
 import com.example.caissa_bot_backend.move_gen.MoveGen;
 import com.example.caissa_bot_backend.utils.Display;
