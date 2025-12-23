@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Stack;
 
-import com.example.caissa_bot_backend.board_representation.Move;
-import com.example.caissa_bot_backend.engine.Engine;
+import com.example.caissa_bot_backend.Engine;
 import com.example.caissa_bot_backend.move_gen.MoveGen;
 import com.example.caissa_bot_backend.utils.Display;
 import com.example.caissa_bot_backend.utils.Zobrist;
@@ -165,7 +164,8 @@ public class Board {
     }
 
     public ArrayList<Move> generateLegalMoves() {
-        ArrayList<Move> pseudoMoves = MoveGen.generatePseudoLegalMoves(bitboard, isWhite);
+        MoveGen moveGen = new MoveGen(bitboard);
+        ArrayList<Move> pseudoMoves = moveGen.generatePseudoLegalMoves(isWhite);
         ArrayList<Move> legalMoves = new ArrayList<>();
 
         for (Move move : pseudoMoves) {

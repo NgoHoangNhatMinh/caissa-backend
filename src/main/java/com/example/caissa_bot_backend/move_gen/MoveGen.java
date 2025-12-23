@@ -9,27 +9,33 @@ public class MoveGen {
     private static final long RANK_4 = 0x000000FF00000000L;
     private static final long RANK_5 = 0x00000000FF000000L;
 
-    public static ArrayList<Move> generatePseudoLegalMoves(Bitboard bitboard, boolean isWhite) {
+    private Bitboard bitboard;
+
+    public MoveGen(Bitboard bitboard) {
+        this.bitboard = bitboard;
+    }
+
+    public ArrayList<Move> generatePseudoLegalMoves(boolean isWhite) {
         // pseudoMoves have not accounted for king being checked after the moves are
         // made
         ArrayList<Move> pseudoMoves = new ArrayList<Move>();
 
-        pseudoMoves.addAll(generatePawnMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateKnightMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateBishopMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateRookMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateQueenMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateKingMoves(bitboard, isWhite));
-        pseudoMoves.addAll(generateCastlingMoves(bitboard, isWhite));
+        pseudoMoves.addAll(generatePawnMoves(isWhite));
+        pseudoMoves.addAll(generateKnightMoves(isWhite));
+        pseudoMoves.addAll(generateBishopMoves(isWhite));
+        pseudoMoves.addAll(generateRookMoves(isWhite));
+        pseudoMoves.addAll(generateQueenMoves(isWhite));
+        pseudoMoves.addAll(generateKingMoves(isWhite));
+        pseudoMoves.addAll(generateCastlingMoves(isWhite));
 
         return pseudoMoves;
     }
 
-    public static ArrayList<Move> generatePawnMoves(Bitboard bitboard, boolean isWhite) {
+    public ArrayList<Move> generatePawnMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 0 : 6;
-        long singlePushs = isWhite ? wSinglePushTargets(bitboard) : bSinglePushTargets(bitboard);
-        long doublePushs = isWhite ? wDblPushTargets(bitboard) : bDblPushTargets(bitboard);
+        long singlePushs = isWhite ? wSinglePushTargets() : bSinglePushTargets();
+        long doublePushs = isWhite ? wDblPushTargets() : bDblPushTargets();
 
         while (singlePushs != 0) {
             int to = Long.numberOfTrailingZeros(singlePushs);
@@ -105,25 +111,25 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static long wSinglePushTargets(Bitboard bitboard) {
+    private long wSinglePushTargets() {
         return (bitboard.pieces[0] >>> 8) & bitboard.emptyOccupancy;
     }
 
-    private static long wDblPushTargets(Bitboard bitboard) {
-        long singlePushs = wSinglePushTargets(bitboard);
+    private long wDblPushTargets() {
+        long singlePushs = wSinglePushTargets();
         return (singlePushs >>> 8) & bitboard.emptyOccupancy & RANK_4;
     }
 
-    private static long bSinglePushTargets(Bitboard bitboard) {
+    private long bSinglePushTargets() {
         return (bitboard.pieces[6] << 8) & bitboard.emptyOccupancy;
     }
 
-    private static long bDblPushTargets(Bitboard bitboard) {
-        long singlePushs = bSinglePushTargets(bitboard);
+    private long bDblPushTargets() {
+        long singlePushs = bSinglePushTargets();
         return (singlePushs << 8) & bitboard.emptyOccupancy & RANK_5;
     }
 
-    private static ArrayList<Move> generateKnightMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateKnightMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 1 : 7;
         long knights = bitboard.pieces[currPiece];
@@ -148,7 +154,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static ArrayList<Move> generateBishopMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateBishopMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 2 : 8;
         long bishops = bitboard.pieces[currPiece];
@@ -180,7 +186,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static ArrayList<Move> generateRookMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateRookMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 3 : 9;
         long rooks = bitboard.pieces[currPiece];
@@ -214,7 +220,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static ArrayList<Move> generateQueenMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateQueenMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 4 : 10;
         long queens = bitboard.pieces[currPiece];
@@ -259,7 +265,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static ArrayList<Move> generateKingMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateKingMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         int currPiece = isWhite ? 5 : 11;
         long kings = bitboard.pieces[currPiece];
@@ -283,7 +289,7 @@ public class MoveGen {
         return possibleMoves;
     }
 
-    private static ArrayList<Move> generateCastlingMoves(Bitboard bitboard, boolean isWhite) {
+    private ArrayList<Move> generateCastlingMoves(boolean isWhite) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
 
         boolean canShortCastle = isWhite ? bitboard.canShortCastleWhite : bitboard.canShortCastleBlack;

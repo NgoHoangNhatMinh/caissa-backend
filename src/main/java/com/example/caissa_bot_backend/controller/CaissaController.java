@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.caissa_bot_backend.Engine;
 import com.example.caissa_bot_backend.board_representation.Board;
 import com.example.caissa_bot_backend.board_representation.Move;
-import com.example.caissa_bot_backend.engine.Engine;
 
 @RestController
 @CrossOrigin(origins = "*")

@@ -1,10 +1,11 @@
-package com.example.caissa_bot_backend.engine;
+package com.example.caissa_bot_backend;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.example.caissa_bot_backend.board_representation.Board;
 import com.example.caissa_bot_backend.board_representation.Move;
+import com.example.caissa_bot_backend.engine.SearchTask;
 
 public class Engine {
     public static void main(String... args) {
