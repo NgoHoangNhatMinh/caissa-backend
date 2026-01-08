@@ -13,9 +13,6 @@ public class Bitboard {
     public static final String[] PIECES_STRINGS = { "WP", "WN", "WB", "WR", "WQ", "WK", "BP", "BN", "BB", "BR", "BQ",
             "BK" };
 
-    // Bitboard gamestate
-    // ----------------------------------------------------------------------
-
     public long[] pieces = new long[13];
     public long whiteOccupancy, blackOccupancy, occupancy, emptyOccupancy;
 
@@ -26,9 +23,8 @@ public class Bitboard {
 
     public int enPassantSquare;
 
+    // Metadata
     private boolean isGameOver;
-
-    // ----------------------------------------------------------------------
 
     public void init() {
         init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -46,6 +42,83 @@ public class Bitboard {
         canLongCastleBlack = parser.canLongCastleBlack;
 
         enPassantSquare = parser.enPassantSquare;
+    }
+
+    // make a move and return a boolean to indicate if the 50-move count is reset;
+    // if the move cause move count to reset, return true
+    public boolean makeMove(Move move, boolean isWhite) {
+        boolean moveCountReset = false;
+
+        if (move.isShortCastling) {
+            shortCastle(isWhite);
+            enPassantSquare = -1;
+        } else if (move.isLongCastling) {
+            longCastle(isWhite);
+            enPassantSquare = -1;
+        } else {
+            int from = move.from;
+            int to = move.to;
+            int piece = move.piece;
+
+            if (piece == 0 || piece == 6)
+                moveCountReset = true;
+
+            removePiece(piece, from);
+
+            // handle capture
+            int captureSquare = move.capturedSquare;
+            int capturedPiece = getPieceAt(captureSquare);
+            if (capturedPiece != -1) {
+                removePiece(capturedPiece, captureSquare);
+                moveCountReset = true;
+            }
+
+            // handle promotion
+            if (move.promotionPiece != -1)
+                addPiece(move.promotionPiece, to);
+            else
+                addPiece(piece, to);
+
+            // Handle castling's rights
+            if (piece == 3) {
+                if (from == 63)
+                    canShortCastleWhite = false;
+                else if (from == 56)
+                    canLongCastleWhite = false;
+            } else if (piece == 9) {
+                if (from == 7)
+                    canShortCastleBlack = false;
+                else if (from == 0)
+                    canLongCastleBlack = false;
+            } else if (piece == 5 || piece == 11)
+                disableCastle(isWhite);
+
+            if (capturedPiece == 3) {
+                if (to == 63)
+                    canShortCastleWhite = false;
+                else if (to == 56)
+                    canLongCastleWhite = false;
+            } else if (capturedPiece == 9) {
+                if (to == 7)
+                    canShortCastleBlack = false;
+                else if (to == 0)
+                    canLongCastleBlack = false;
+            }
+
+            // Check for en passant
+            if (piece == 0 || piece == 6) {
+                if (Math.abs(from - to) == 16) { // double move
+                    enPassantSquare = isWhite ? from - 8 : from + 8; // square behind the double pawn push
+                } else {
+                    enPassantSquare = -1;
+                }
+            } else {
+                enPassantSquare = -1;
+            }
+        }
+
+        updateOccupancy();
+        return moveCountReset;
     }
 
     // Update occupancy after a move and save the hash of the position

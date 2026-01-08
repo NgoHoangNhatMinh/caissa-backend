@@ -4,7 +4,7 @@ import com.example.caissa_bot_backend.board_representation.Move;
 
 public class FenParser {
     public long[] pieces = new long[13];
-    public boolean canShortCastleWhite, canShortCastleBlack, canLongCastleWhite, canLongCastleBlack;
+    public boolean isWhite, canShortCastleWhite, canShortCastleBlack, canLongCastleWhite, canLongCastleBlack;
     public int enPassantSquare;
 
     public FenParser(String fen) {
@@ -67,6 +67,9 @@ public class FenParser {
                 }
             }
         }
+
+        String color = parts[1];
+        isWhite = color == "w";
 
         String castling = parts[2];
         canShortCastleWhite = castling.contains("K");

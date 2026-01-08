@@ -11,26 +11,18 @@ import com.example.caissa_bot_backend.utils.Zobrist;
 
 public class Board {
     // Gamestate
-    // -------------------------------------------------------------------------------------------------------
-
     private Bitboard bitboard;
     private boolean isWhite;
     private int halfMovesSinceReset = 0;
     private int fullMoves = 1;
     private Zobrist zobrist;
 
-    // -------------------------------------------------------------------------------------------------------
-
     private Stack<Board> gameHistory = new Stack<>();
 
     // For engine play
-    // -------------------------------------------------------------------------------------------------------
-
     public boolean isWhiteBot = false;
     public boolean isBlackBot = false;
     public int engineDepth = 5;
-
-    // -------------------------------------------------------------------------------------------------------
 
     public void init() {
         init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -182,80 +174,13 @@ public class Board {
         // Save current state for undo functionality
         gameHistory.push(this.copy());
 
-        // Make move
-        if (move.isShortCastling) {
-            bitboard.shortCastle(isWhite);
-            bitboard.enPassantSquare = -1;
-        } else if (move.isLongCastling) {
-            bitboard.longCastle(isWhite);
-            bitboard.enPassantSquare = -1;
-        } else {
-            int from = move.from;
-            int to = move.to;
-            int piece = move.piece;
-
-            if (piece == 0 || piece == 6)
-                halfMovesSinceReset = 0;
-
-            // remove piece from source
-            bitboard.removePiece(piece, from);
-
-            // handle capture
-            int captureSquare = move.capturedSquare;
-            int capturedPiece = bitboard.getPieceAt(captureSquare);
-            if (capturedPiece != -1) {
-                bitboard.removePiece(capturedPiece, captureSquare);
-                halfMovesSinceReset = 0;
-            }
-
-            // handle promotion
-            if (move.promotionPiece != -1)
-                bitboard.addPiece(move.promotionPiece, to);
-            else
-                bitboard.addPiece(piece, to);
-
-            // Handle castling's rights
-            if (piece == 3) {
-                if (from == 63)
-                    bitboard.canShortCastleWhite = false;
-                else if (from == 56)
-                    bitboard.canLongCastleWhite = false;
-            } else if (piece == 9) {
-                if (from == 7)
-                    bitboard.canShortCastleBlack = false;
-                else if (from == 0)
-                    bitboard.canLongCastleBlack = false;
-            } else if (piece == 5 || piece == 11)
-                bitboard.disableCastle(isWhite);
-
-            if (capturedPiece == 3) {
-                if (to == 63)
-                    bitboard.canShortCastleWhite = false;
-                else if (to == 56)
-                    bitboard.canLongCastleWhite = false;
-            } else if (capturedPiece == 9) {
-                if (to == 7)
-                    bitboard.canShortCastleBlack = false;
-                else if (to == 0)
-                    bitboard.canLongCastleBlack = false;
-            }
-
-            // Check for en passant
-            if (piece == 0 || piece == 6) {
-                if (Math.abs(from - to) == 16) { // double move
-                    bitboard.enPassantSquare = isWhite ? from - 8 : from + 8; // square behind the double pawn push
-                } else {
-                    bitboard.enPassantSquare = -1;
-                }
-            } else {
-                bitboard.enPassantSquare = -1;
-            }
-        }
+        boolean moveCountReset = bitboard.makeMove(move, isWhite);
+        if (moveCountReset)
+            halfMovesSinceReset = 0;
 
         halfMovesSinceReset++;
         if (!isWhite)
             fullMoves++;
-        bitboard.updateOccupancy();
         switchPlayer();
     }
 
