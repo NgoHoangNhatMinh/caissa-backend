@@ -1,8 +1,16 @@
 package com.example.caissa_bot_backend.board_representation;
 
+import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.Stack;
+
+import com.example.caissa_bot_backend.Engine;
 import com.example.caissa_bot_backend.move_gen.AttacksGen;
 import com.example.caissa_bot_backend.move_gen.MagicBitboards;
+import com.example.caissa_bot_backend.move_gen.MoveGen;
+import com.example.caissa_bot_backend.utils.Display;
 import com.example.caissa_bot_backend.utils.FenParser;
+import com.example.caissa_bot_backend.utils.Zobrist;
 
 enum PE {
     WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK
@@ -24,7 +32,17 @@ public class Bitboard {
     public int enPassantSquare;
 
     // Metadata
+    private boolean isWhite;
+    private int halfMovesSinceReset = 0;
+    private int fullMoves = 1;
+    private Zobrist zobrist;
     private boolean isGameOver;
+    private Stack<Bitboard> gameHistory = new Stack<>();
+
+    // For engine play
+    public boolean isWhiteBot = false;
+    public boolean isBlackBot = false;
+    public int engineDepth = 5;
 
     public void init() {
         init("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
@@ -36,17 +54,119 @@ public class Bitboard {
         pieces = parser.pieces;
         updateOccupancy();
 
+        isWhite = parser.isWhite;
+
         canShortCastleWhite = parser.canShortCastleWhite;
         canLongCastleWhite = parser.canLongCastleWhite;
         canShortCastleBlack = parser.canShortCastleBlack;
         canLongCastleBlack = parser.canLongCastleBlack;
 
         enPassantSquare = parser.enPassantSquare;
+
+        halfMovesSinceReset = parser.halfMovesSinceReset;
+        fullMoves = parser.fullMoves;
+
+        zobrist = new Zobrist();
     }
 
-    // make a move and return a boolean to indicate if the 50-move count is reset;
-    // if the move cause move count to reset, return true
-    public boolean makeMove(Move move, boolean isWhite) {
+    public void run() {
+        Display.clearScreen();
+        Scanner scanner = new Scanner(System.in);
+        while (!isGameOver) {
+            System.out.println(this);
+
+            // Mark the current position as visited by adding to zobrist map
+            zobrist.zobristHash(this, isWhite);
+
+            ArrayList<Move> legalMoves = generateLegalMoves();
+
+            if (legalMoves.isEmpty()) {
+                if (isKingInCheck(isWhite))
+                    System.out.println((isWhite ? "White" : "Black") + " is checkmated");
+                else
+                    System.out.println("The game is a draw by stalemate");
+                break;
+            }
+            if (isFiftyMove()) {
+                System.out.println("The game is a draw by 50-move rule");
+                break;
+            }
+            if (isThreefoldRepetition()) {
+                System.out.println("The game is a draw by threefold repetition");
+                break;
+            }
+            if (isInsufficientMaterial()) {
+                System.out.println("The game is a draw by insufficient material");
+                break;
+            }
+
+            if (isKingInCheck(isWhite)) {
+                System.out.println((isWhite ? "White" : "Black") + " is in check");
+            }
+
+            // Inputting move
+            System.out.println(fullMoves + ". " + (isWhite ? "White" : "Black") + " to move: ");
+
+            Move selectedMove = null;
+            if (isWhite && isWhiteBot || !isWhite && isBlackBot) {
+                // Bot move generation
+                // selectedMove = Engine.generateBestMove(legalMoves);
+                long start = System.currentTimeMillis();
+                Engine engine = new Engine(this, engineDepth);
+                selectedMove = engine.generateBestMove();
+                long finish = System.currentTimeMillis();
+                float seconds = (float) (finish - start) / 1000;
+                System.out.println("Thinking for " + (seconds) + " seconds");
+                System.out.println("Bot chose: " + selectedMove);
+            } else {
+                String moveString = scanner.nextLine();
+                Move move = new Move(moveString, isWhite);
+                System.out.println(move);
+                for (Move m : legalMoves) {
+                    if (m.equals(new Move(moveString, isWhite))) {
+                        selectedMove = m;
+                    }
+                }
+            }
+
+            if (selectedMove != null) {
+                makeMove(selectedMove);
+            } else {
+                System.out.println("This is not a legal move\n");
+            }
+        }
+        scanner.close();
+    }
+
+    public boolean isLegalMove(Move move) {
+        ArrayList<Move> legalMoves = generateLegalMoves();
+
+        for (Move m : legalMoves) {
+            if (m.equals(move))
+                return true;
+        }
+        return false;
+    }
+
+    public ArrayList<Move> generateLegalMoves() {
+        MoveGen moveGen = new MoveGen(this);
+        ArrayList<Move> pseudoMoves = moveGen.generatePseudoLegalMoves(isWhite);
+        ArrayList<Move> legalMoves = new ArrayList<>();
+
+        for (Move move : pseudoMoves) {
+            Bitboard boardCopy = this.copy();
+            boardCopy.makeMove(move);
+            if (!boardCopy.isKingInCheck(isWhite))
+                legalMoves.add(move);
+        }
+
+        return legalMoves;
+    }
+
+    public void makeMove(Move move) {
+        // Save current state for undoing in the future
+        gameHistory.push(this.copy());
+
         boolean moveCountReset = false;
 
         if (move.isShortCastling) {
@@ -118,7 +238,51 @@ public class Bitboard {
         }
 
         updateOccupancy();
-        return moveCountReset;
+
+        if (moveCountReset)
+            halfMovesSinceReset = 0;
+
+        halfMovesSinceReset++;
+        if (!isWhite)
+            fullMoves++;
+        switchPlayer();
+    }
+
+    public void undoMove() {
+        if (gameHistory.isEmpty()) {
+            System.out.println("No moves to undo");
+            return;
+        }
+        Bitboard previousBoard = gameHistory.pop();
+
+        // undo pieces
+        // copy pieces
+        for (int i = 0; i < 13; i++) {
+            pieces[i] = previousBoard.pieces[i];
+        }
+        updateOccupancy();
+
+        whiteOccupancy = previousBoard.whiteOccupancy;
+        blackOccupancy = previousBoard.blackOccupancy;
+        occupancy = previousBoard.occupancy;
+        emptyOccupancy = previousBoard.emptyOccupancy;
+
+        canShortCastleBlack = previousBoard.canShortCastleBlack;
+        canShortCastleWhite = previousBoard.canShortCastleWhite;
+        canLongCastleBlack = previousBoard.canLongCastleBlack;
+        canLongCastleWhite = previousBoard.canLongCastleWhite;
+
+        enPassantSquare = previousBoard.enPassantSquare;
+
+        // undo metadata
+        isWhite = previousBoard.isWhite;
+        halfMovesSinceReset = previousBoard.halfMovesSinceReset;
+        fullMoves = previousBoard.fullMoves;
+        zobrist = previousBoard.zobrist;
+        isGameOver = previousBoard.isGameOver;
+        isWhiteBot = previousBoard.isWhiteBot;
+        isBlackBot = previousBoard.isBlackBot;
+        engineDepth = previousBoard.engineDepth;
     }
 
     // Update occupancy after a move and save the hash of the position
@@ -131,6 +295,7 @@ public class Bitboard {
     }
 
     public Bitboard copy() {
+        // Copy piece placement
         Bitboard newBB = new Bitboard();
         for (int i = 0; i < pieces.length; i++) {
             newBB.pieces[i] = pieces[i];
@@ -144,7 +309,17 @@ public class Bitboard {
         newBB.canShortCastleBlack = canShortCastleBlack;
         newBB.canLongCastleBlack = canLongCastleBlack;
         newBB.enPassantSquare = enPassantSquare;
+
+        // Copy metadata
+        newBB.isWhite = isWhite;
+        newBB.halfMovesSinceReset = halfMovesSinceReset;
+        newBB.fullMoves = fullMoves;
+        newBB.isWhiteBot = isWhiteBot;
+        newBB.isBlackBot = isBlackBot;
+        newBB.zobrist = zobrist.copy();
+        // newBB.gameHistory = gameHistory;
         newBB.isGameOver = isGameOver;
+
         return newBB;
     }
 
@@ -278,8 +453,32 @@ public class Bitboard {
         return false;
     }
 
+    public boolean isFiftyMove() {
+        return halfMovesSinceReset >= 100;
+    }
+
+    public boolean isThreefoldRepetition() {
+        return zobrist.count(this, isWhite) >= 3;
+    }
+
+    public boolean isCheck() {
+        return isKingInCheck(isWhite);
+    }
+
+    public boolean isOpponentKingInCheck() {
+        return isKingInCheck(!isWhite);
+    }
+
+    public boolean isCheckmate() {
+        return isCheck() && generateLegalMoves().isEmpty();
+    }
+
+    public boolean isStalemate() {
+        return !isCheck() && generateLegalMoves().isEmpty();
+    }
+
     public boolean isGameOver() {
-        return isGameOver;
+        return isCheckmate() || isStalemate() || isThreefoldRepetition() || isFiftyMove() || isInsufficientMaterial();
     }
 
     public long[] getPieces() {
@@ -288,6 +487,18 @@ public class Bitboard {
 
     public boolean isOccuppied(int sq) {
         return getPieceAt(sq) != -1;
+    }
+
+    public boolean isWhiteToMove() {
+        return isWhite;
+    }
+
+    public void switchPlayer() {
+        isWhite = !isWhite;
+    }
+
+    public long zobristHash() {
+        return zobrist.zobristHash(this, isWhite);
     }
 
     @Override

@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 import com.example.caissa_bot_backend.board_representation.Move;;
 
 public class Search {
     public static HashMap<Long, TranspositionEntry> transpositionTable = new HashMap<>();
 
-    public static int negaMax(Board board, int depth, int alpha, int beta) {
+    public static int negaMax(Bitboard board, int depth, int alpha, int beta) {
         long hash = board.zobristHash();
         TranspositionEntry entry = transpositionTable.get(hash);
         // Only return transposition with deeper search
@@ -42,9 +42,9 @@ public class Search {
     }
 
     private static class MoveComparator implements Comparator<Move> {
-        private Board board;
+        private Bitboard board;
 
-        public MoveComparator(Board board) {
+        public MoveComparator(Bitboard board) {
             this.board = board;
         }
 

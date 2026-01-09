@@ -2,7 +2,7 @@ package com.example.caissa_bot_backend;
 
 import java.util.*;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 import com.example.caissa_bot_backend.board_representation.Move;
 import com.example.caissa_bot_backend.utils.Timer;
 
@@ -25,16 +25,16 @@ public class Perft {
     static Map<String, Map<Integer, Long>> knownPerft = new LinkedHashMap<>();
     static {
         // // 1. Starting position
-        Map<Integer, Long> start = new HashMap<>();
-        start.put(1, 20L);
-        start.put(2, 400L);
-        start.put(3, 8902L);
-        start.put(4, 197281L);
-        start.put(5, 4865609L);
-        start.put(6, 119060324L);
-        start.put(7, 3195901860L);
-        knownPerft.put("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-                start);
+        // Map<Integer, Long> start = new HashMap<>();
+        // start.put(1, 20L);
+        // start.put(2, 400L);
+        // start.put(3, 8902L);
+        // start.put(4, 197281L);
+        // start.put(5, 4865609L);
+        // start.put(6, 119060324L);
+        // start.put(7, 3195901860L);
+        // knownPerft.put("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        // start);
 
         // 2. Kiwipete
         Map<Integer, Long> kiwipete = new HashMap<>();
@@ -133,8 +133,8 @@ public class Perft {
     static Timer moveExecTimer = new Timer();
 
     public static void main(String[] args) {
-        Board board = new Board();
-        int maxDepth = 5;
+        Bitboard board = new Bitboard();
+        int maxDepth = 4;
         if (args.length > 0) {
             try {
                 maxDepth = Integer.parseInt(args[0]);
@@ -149,7 +149,7 @@ public class Perft {
             board.init(fen);
             long start = System.currentTimeMillis();
             System.out.println("Testing: " + fen + "\n");
-            board.printBoard();
+            System.out.println(board);
 
             System.out.println(
                     "----------------------------------------------------------------------------------------------");
@@ -157,6 +157,7 @@ public class Perft {
                     "| Depth |        Nodes        | Captures | E.P. | Castles | Promotions | Checks | Checkmates |");
             System.out.println(
                     "----------------------------------------------------------------------------------------------");
+
             for (int depth = 1; depth <= maxDepth; depth++) {
                 PerftCounters counters = new PerftCounters();
                 perft(board, depth, counters);
@@ -187,7 +188,7 @@ public class Perft {
     static ArrayList<Move> moveHistory = new ArrayList<>();
     static long prevCounter = 0L;
 
-    public static void perft(Board board, int depth, PerftCounters counters) {
+    public static void perft(Bitboard board, int depth, PerftCounters counters) {
         if (depth == 0) {
             counters.nodes++;
             return;
@@ -196,6 +197,7 @@ public class Perft {
         moveGenTimer.start();
         ArrayList<Move> legalMoves = board.generateLegalMoves();
         moveGenTimer.stop();
+
         for (Move move : legalMoves) {
             moveExecTimer.start();
             board.makeMove(move);

@@ -6,6 +6,7 @@ public class FenParser {
     public long[] pieces = new long[13];
     public boolean isWhite, canShortCastleWhite, canShortCastleBlack, canLongCastleWhite, canLongCastleBlack;
     public int enPassantSquare;
+    public int halfMovesSinceReset, fullMoves;
 
     public FenParser(String fen) {
         String[] parts = fen.trim().split("\\s+");
@@ -69,7 +70,7 @@ public class FenParser {
         }
 
         String color = parts[1];
-        isWhite = color == "w";
+        isWhite = color.equals("w");
 
         String castling = parts[2];
         canShortCastleWhite = castling.contains("K");
@@ -85,6 +86,18 @@ public class FenParser {
             if (enPassantSquare < 0 || enPassantSquare > 63) {
                 throw new IllegalArgumentException("Invalid en passant square in FEN string");
             }
+        }
+
+        String halfMovesStr = parts[4];
+        String fullMoveStr = parts[5];
+        try {
+            halfMovesSinceReset = Integer.parseInt(halfMovesStr);
+            fullMoves = Integer.parseInt(fullMoveStr);
+        } catch (NumberFormatException e) {
+            System.out.println(
+                    "Invalid half move count or full move count in FEN, defaulting to half move count = 0 and full move count = 1");
+            halfMovesSinceReset = 0;
+            fullMoves = 1;
         }
     }
 }

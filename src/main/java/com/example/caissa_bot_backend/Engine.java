@@ -3,13 +3,21 @@ package com.example.caissa_bot_backend;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 import com.example.caissa_bot_backend.board_representation.Move;
 import com.example.caissa_bot_backend.engine.SearchTask;
 
 public class Engine {
+    private Bitboard bitboard;
+    private int depth;
+
+    public Engine(Bitboard bitboard, int depth) {
+        this.bitboard = bitboard;
+        this.depth = depth;
+    }
+
     public static void main(String... args) {
-        Board board = new Board();
+        Bitboard board = new Bitboard();
         board.init();
         board.isWhiteBot = true;
         board.isBlackBot = true;
@@ -27,17 +35,18 @@ public class Engine {
     }
 
     public static Move generateBestMove(String fen, int depth) {
-        Board board = new Board();
+        Bitboard board = new Bitboard();
         board.init(fen);
-        return generateBestMove(board, depth);
+        Engine engine = new Engine(board, depth);
+        return engine.generateBestMove();
     }
 
-    public static Move generateBestMove(Board board, int depth) {
-        return rootNegaMax(board, depth);
+    public Move generateBestMove() {
+        return rootNegaMax();
     }
 
-    private static Move rootNegaMax(Board board, int depth) {
-        ArrayList<Move> legalMoves = board.generateLegalMoves();
+    private Move rootNegaMax() {
+        ArrayList<Move> legalMoves = bitboard.generateLegalMoves();
         if (legalMoves.isEmpty())
             return null;
 
@@ -47,7 +56,7 @@ public class Engine {
         List<SearchTask> tasks = new ArrayList<>();
 
         for (Move move : legalMoves) {
-            Board copy = board.copy();
+            Bitboard copy = bitboard.copy();
             copy.makeMove(move);
             SearchTask task = new SearchTask(copy, depth - 1, Integer.MIN_VALUE,
                     Integer.MAX_VALUE);

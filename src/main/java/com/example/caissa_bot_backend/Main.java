@@ -1,10 +1,10 @@
 package com.example.caissa_bot_backend;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 
 class Main {
     public static void main(String... args) {
-        Board board = new Board();
+        Bitboard board = new Bitboard();
         board.init();
 
         if (args.length > 0) {

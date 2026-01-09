@@ -1,6 +1,6 @@
 package com.example.caissa_bot_backend.engine;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 
 public class Evaluate {
         public static final int CHECKMATE_SCORE = 100_000;
@@ -141,7 +141,7 @@ public class Evaluate {
                         EG_BISHOP_SQUARES_VALUES, EG_ROOK_SQUARES_VALUES, EG_QUEEN_SQUARES_VALUES,
                         EG_KING_SQUARES_VALUES };
 
-        public static int evaluate(Board board) {
+        public static int evaluate(Bitboard board) {
                 int who2Move = board.isWhiteToMove() ? 1 : -1;
                 if (board.isCheckmate())
                         return -CHECKMATE_SCORE;
@@ -160,8 +160,8 @@ public class Evaluate {
                 int egScore = 0;
                 for (int i = 0; i <= 5; i++) {
                         // Count material
-                        long whitePiece = board.getBitboard().getPieces()[i];
-                        long blackPiece = board.getBitboard().getPieces()[i + 6];
+                        long whitePiece = board.getPieces()[i];
+                        long blackPiece = board.getPieces()[i + 6];
 
                         int numWhitePieces = Long.bitCount(whitePiece);
                         int numBlackPieces = Long.bitCount(blackPiece);

@@ -2,13 +2,13 @@ package com.example.caissa_bot_backend.engine;
 
 import java.util.concurrent.RecursiveTask;
 
-import com.example.caissa_bot_backend.board_representation.Board;
+import com.example.caissa_bot_backend.board_representation.Bitboard;
 
 public class SearchTask extends RecursiveTask<Integer> {
-    private Board board;
+    private Bitboard board;
     private int depth, alpha, beta;
 
-    public SearchTask(Board board, int depth, int alpha, int beta) {
+    public SearchTask(Bitboard board, int depth, int alpha, int beta) {
         this.board = board;
         this.depth = depth;
         this.alpha = alpha;
